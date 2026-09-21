@@ -1,0 +1,23 @@
+{
+  "function": "characterReplacement",
+  "params": [
+    {"name": "s", "type": "string"},
+    {"name": "k", "type": "integer"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": ["ABAB", 2], "expected": 4},
+    {"name": "example 2", "args": ["AABABBA", 1], "expected": 4},
+    {"name": "single character", "args": ["A", 0], "expected": 1},
+    {"name": "k is zero, all identical", "args": ["AAAA", 0], "expected": 4},
+    {"name": "k is zero, all distinct", "args": ["ABCD", 0], "expected": 1},
+    {"name": "k covers whole string", "args": ["ABCD", 4], "expected": 4},
+    {"name": "k larger than needed", "args": ["AAAAB", 3], "expected": 5},
+    {"name": "two letters alternating", "args": ["ABABABAB", 1], "expected": 3},
+    {"name": "all twenty six letters once", "args": ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1], "expected": 2},
+    {"name": "majority one letter with rare others", "args": ["AAAAABAAAAA", 1], "expected": 11},
+    {"name": "one letter then two of another, no replacements allowed", "args": ["ABB", 0], "expected": 2},
+    {"name": "near max length, few distinct letters", "file": "large_input.json.gz", "large": true}
+  ]
+}

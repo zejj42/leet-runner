@@ -1,0 +1,23 @@
+{
+  "function": "lengthOfLongestSubstring",
+  "params": [
+    {"name": "s", "type": "string"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": ["abcabcbb"], "expected": 3},
+    {"name": "example 2", "args": ["bbbbb"], "expected": 1},
+    {"name": "example 3", "args": ["pwwkew"], "expected": 3},
+    {"name": "empty string", "args": [""], "expected": 0},
+    {"name": "single character", "args": ["a"], "expected": 1},
+    {"name": "all identical characters", "args": ["aaaaaaaa"], "expected": 1},
+    {"name": "all unique characters", "args": ["abcdefg"], "expected": 7},
+    {"name": "digits and symbols mixed", "args": ["a1!a1!"], "expected": 3},
+    {"name": "spaces in string", "args": ["a b a b"], "expected": 3},
+    {"name": "two characters repeating", "args": ["abab"], "expected": 2},
+    {"name": "longest run at the end", "args": ["aabcdef"], "expected": 6},
+    {"name": "longest run at the start", "args": ["abcdefa"], "expected": 6},
+    {"name": "many distinct characters near max length", "file": "large_input.json.gz", "large": true}
+  ]
+}

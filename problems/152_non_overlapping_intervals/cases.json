@@ -1,0 +1,24 @@
+{
+  "function": "eraseOverlapIntervals",
+  "params": [
+    {"name": "intervals", "type": "integer[][]"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[[1, 2], [2, 3], [3, 4], [1, 3]]], "expected": 1},
+    {"name": "example 2", "args": [[[1, 2], [1, 2], [1, 2]]], "expected": 2},
+    {"name": "example 3", "args": [[[1, 2], [2, 3]]], "expected": 0},
+    {"name": "single interval", "args": [[[1, 5]]], "expected": 0},
+    {"name": "already non overlapping", "args": [[[1, 2], [3, 4], [5, 6]]], "expected": 0},
+    {"name": "all equal intervals", "args": [[[1, 5], [1, 5], [1, 5]]], "expected": 2},
+    {"name": "touching intervals", "args": [[[1, 2], [2, 3], [3, 4]]], "expected": 0},
+    {"name": "nested intervals", "args": [[[1, 10], [2, 3], [4, 5]]], "expected": 1},
+    {"name": "negative bounds", "args": [[[-5, -1], [-3, 2], [3, 6]]], "expected": 1},
+    {"name": "one interval contains all others", "args": [[[0, 100], [1, 2], [3, 4], [5, 6]]], "expected": 1},
+    {"name": "chain of overlaps", "args": [[[1, 3], [2, 4], [3, 5], [4, 6]]], "expected": 2},
+    {"name": "unsorted input", "args": [[[3, 4], [1, 2], [2, 3]]], "expected": 0},
+    {"name": "short intervals among longer ones", "args": [[[3, 6], [6, 11], [5, 7]]], "expected": 1},
+    {"name": "large random overlapping intervals", "file": "large_input.json.gz", "large": true}
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "function": "totalFruit",
+  "params": [
+    {"name": "fruits", "type": "integer[]"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[1, 2, 1]], "expected": 3},
+    {"name": "example 2", "args": [[0, 1, 2, 2]], "expected": 3},
+    {"name": "example 3", "args": [[1, 2, 3, 2, 2]], "expected": 4},
+    {"name": "single tree", "args": [[0]], "expected": 1},
+    {"name": "single type of fruit only", "args": [[0, 0, 0, 0]], "expected": 4},
+    {"name": "two types only", "args": [[0, 1, 0, 1, 0]], "expected": 5},
+    {"name": "three types, best run at the start", "args": [[0, 1, 0, 1, 2]], "expected": 4},
+    {"name": "three types, best run at the end", "args": [[2, 0, 1, 0, 1]], "expected": 4},
+    {"name": "every tree a different type", "args": [[0, 1, 2, 3, 4]], "expected": 2},
+    {"name": "second type introduced late", "args": [[0, 0, 0, 0, 1]], "expected": 5},
+    {"name": "many types, one dominant pair repeating", "args": [[3, 3, 3, 1, 3, 3, 4, 3, 3]], "expected": 6},
+    {"name": "rare type sandwiched between a frequent type on each side", "args": [[0, 0, 1, 2, 1, 1]], "expected": 4},
+    {"name": "near max length, three fruit types", "file": "large_input.json.gz", "large": true}
+  ]
+}

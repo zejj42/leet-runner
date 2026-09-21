@@ -47,8 +47,10 @@ def test_list_names_every_problem_in_the_repo_and_pages_only_a_tall_list_on_a_te
     from leetkit import cli
     assert cli.main(["list"]) == 0
     said = capsys.readouterr().out
-    assert "  001  Two Sum" in said and "0 of " in said and "two-sum" in said and "142  Reorder List" in said and "medium" in said
-    assert said.index("001") < said.index("003") < said.index("142") and "solved.  leet read" in said
+    assert "  001     Two Sum" in said and "0 of " in said and "two-sum" in said and "142     Reorder List" in said and "medium" in said
+    extras = [row for row in said.split("\n") if " extra " in row]
+    assert extras and all(row.lstrip("✓ ").startswith("lc") for row in extras)                  # off the chart: labelled
+    assert said.index("001") < said.index("003") < said.index("142") < said.index("lc0") and "solved.  leet read" in said
 
     paged = []
     monkeypatch.setattr(cli.sys.stdout, "isatty", lambda: True, raising=False)

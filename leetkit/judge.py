@@ -214,10 +214,16 @@ def describe(spec: Spec, case: Case, got: Any = None, show_got: bool = False, no
 # there. Here too: a recursive answer is judged on whether it is right, not on Python's default.
 _RECURSION_LIMIT = 250_000
 
-def run_case(spec: Spec, case: Case) -> None:
+def load_solution(spec: Spec):
+    """The solution module, run once. Judging every case with the same module is what LeetCode does, and it is what
+    lets state kept on the class or at the top of the file (a classic slip) show up as the wrong answers it causes."""
+    return _load_module(spec.folder / "solution.py", f"solution_{spec.folder.name}")
+
+
+def run_case(spec: Spec, case: Case, module=None) -> None:
     """Raises NotStarted, WrongAnswer or TimeoutError; returns quietly when the case passes."""
     sys.setrecursionlimit(max(sys.getrecursionlimit(), _RECURSION_LIMIT))
-    module = _load_module(spec.folder / "solution.py", f"solution_{spec.folder.name}")
+    module = module or load_solution(spec)
     limit = spec.time_limit * (5 if case.large else 1)
     try:
         with _TimeLimit(limit):

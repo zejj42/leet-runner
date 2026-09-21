@@ -1,0 +1,22 @@
+{
+  "function": "canAttendMeetings",
+  "params": [
+    {"name": "intervals", "type": "integer[][]"}
+  ],
+  "returns": "boolean",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[[0, 30], [5, 10], [15, 20]]], "expected": false},
+    {"name": "example 2", "args": [[[7, 10], [2, 4]]], "expected": true},
+    {"name": "empty list", "args": [[]], "expected": true},
+    {"name": "single meeting", "args": [[[3, 8]]], "expected": true},
+    {"name": "touching meetings", "args": [[[1, 2], [2, 3]]], "expected": true},
+    {"name": "unsorted no overlap", "args": [[[10, 15], [1, 3], [5, 9]]], "expected": true},
+    {"name": "identical meetings", "args": [[[2, 5], [2, 5]]], "expected": false},
+    {"name": "nested meetings", "args": [[[1, 10], [2, 4]]], "expected": false},
+    {"name": "partial overlap", "args": [[[1, 5], [4, 8]]], "expected": false},
+    {"name": "many touching in a row", "args": [[[1, 2], [2, 3], [3, 4], [4, 5]]], "expected": true},
+    {"name": "overlap at the end of the list", "args": [[[1, 2], [3, 4], [5, 6], [5, 20]]], "expected": false},
+    {"name": "large non overlapping meetings", "file": "large_input.json.gz", "large": true}
+  ]
+}

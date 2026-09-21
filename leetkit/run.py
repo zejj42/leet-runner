@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from .judge import NotStarted, WrongAnswer, describe, load_spec, run_case
+from .judge import NotStarted, WrongAnswer, describe, load_solution, load_spec, run_case
 
 
 @dataclass
@@ -38,11 +38,13 @@ def judge_folder(folder: Path) -> Result:
     cases = spec.cases
     result = Result("Accepted", total=len(cases))
     started = time.perf_counter()
+    module = None
     for index, case in enumerate(cases):
         printed = io.StringIO()
         try:
             with contextlib.redirect_stdout(printed):       # prints are shown with the case they belong to, as on LeetCode
-                run_case(spec, case)
+                module = module or load_solution(spec)      # once: a file that fails to load is the first case's crash
+                run_case(spec, case, module)
         except NotStarted:
             return Result("Not started", total=len(cases))
         except WrongAnswer as wrong:

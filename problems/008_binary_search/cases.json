@@ -1,0 +1,23 @@
+{
+  "function": "search",
+  "params": [
+    {"name": "nums", "type": "integer[]"},
+    {"name": "target", "type": "integer"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[-1, 0, 3, 5, 9, 12], 9], "expected": 4},
+    {"name": "example 2", "args": [[-1, 0, 3, 5, 9, 12], 2], "expected": -1},
+    {"name": "single element found", "args": [[5], 5], "expected": 0},
+    {"name": "single element not found", "args": [[5], -3], "expected": -1},
+    {"name": "target smaller than all", "args": [[1, 4, 7, 10], 0], "expected": -1},
+    {"name": "target larger than all", "args": [[1, 4, 7, 10], 20], "expected": -1},
+    {"name": "target at first index", "args": [[-9, -3, 0, 8, 15], -9], "expected": 0},
+    {"name": "target at last index", "args": [[-9, -3, 0, 8, 15], 15], "expected": 4},
+    {"name": "negative target found", "args": [[-8, -5, -2, 1, 6], -5], "expected": 1},
+    {"name": "two elements found first", "args": [[2, 9], 2], "expected": 0},
+    {"name": "two elements found second", "args": [[2, 9], 9], "expected": 1},
+    {"name": "large sorted list", "file": "large_input.json.gz", "large": true}
+  ]
+}

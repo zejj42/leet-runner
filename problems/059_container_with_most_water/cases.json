@@ -1,0 +1,21 @@
+{
+  "function": "maxArea",
+  "params": [
+    {"name": "height", "type": "integer[]"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[1, 8, 6, 2, 5, 4, 8, 3, 7]], "expected": 49},
+    {"name": "example 2", "args": [[1, 1]], "expected": 1},
+    {"name": "two lines minimum size", "args": [[5, 9]], "expected": 5},
+    {"name": "all equal heights", "args": [[4, 4, 4, 4, 4]], "expected": 16},
+    {"name": "strictly increasing heights", "args": [[1, 2, 3, 4, 5, 6]], "expected": 9},
+    {"name": "strictly decreasing heights", "args": [[6, 5, 4, 3, 2, 1]], "expected": 9},
+    {"name": "zero height lines present", "args": [[0, 2, 0, 3, 0]], "expected": 4},
+    {"name": "tallest lines at both ends", "args": [[9, 1, 1, 1, 1, 9]], "expected": 45},
+    {"name": "single tall spike in the middle", "args": [[1, 1, 9, 1, 1]], "expected": 4},
+    {"name": "all zero heights", "args": [[0, 0, 0, 0]], "expected": 0},
+    {"name": "many lines near max length, random heights", "file": "large_input.json.gz", "large": true}
+  ]
+}

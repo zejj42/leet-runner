@@ -114,10 +114,12 @@ def _list(args) -> int:
     for problem in problems:
         level = f"{problem.difficulty:<6}"
         mark = "✓" if problem.slug in done else " "
+        extra = f"{'extra' if problem.number is None else '':<5}"       # not one of the 169 on the chart
         if terminal:
             level = f"\033[{colours.get(problem.difficulty, '0')}m{level}\033[0m"
             mark = f"\033[1;32m{mark}\033[0m"
-        lines.append(f"{mark} {problem.label}  {problem.title:<{width}}  {level}  {problem.slug}")
+            extra = f"\033[1;35m{extra}\033[0m"
+        lines.append(f"{mark} {problem.label:<6}  {problem.title:<{width}}  {level}  {extra}  {problem.slug}")
     count = sum(problem.slug in done for problem in problems)
     lines.append(f"\n{count} of {len(problems)} solved.  leet read <number or slug>")
     _show("\n".join(lines))

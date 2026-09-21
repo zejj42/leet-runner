@@ -22,6 +22,7 @@
     {"name": "multi-digit numbers", "args": ["123+456"], "expected": 579},
     {"name": "value at the maximum 32-bit int", "args": ["2147483647"], "expected": 2147483647},
     {"name": "reaching the minimum 32-bit int", "args": ["-2147483647-1"], "expected": -2147483648},
+    {"name": "second group following a negated group", "args": ["-(1)+(2)"], "expected": 1},
     {"name": "largest input, long chain of additions and subtractions", "file": "large_chain.json.gz", "large": true},
     {"name": "largest input, deeply nested parentheses", "file": "large_nested.json.gz", "large": true}
   ]

@@ -64,7 +64,7 @@ def test_an_accepted_problem_is_marked_solved_in_the_list_and_stays_so(tmp_path,
     capsys.readouterr()
     assert cli.main(["list"]) == 0
     said = capsys.readouterr().out
-    assert "✓ 001  Two Sum" in said and "1 of 1 solved" in said
+    assert "✓ 001     Two Sum" in said and "1 of 1 solved" in said
 
     elsewhere = tmp_path / "copies" / "003_merge_two_sorted_lists"; elsewhere.mkdir(parents=True)
     problem(elsewhere, "class Solution:\n    def add(self, a, b): return a + b", ADD)
@@ -93,3 +93,17 @@ def test_prints_are_shown_with_the_case_they_belong_to(tmp_path):
 
     noisy = problem(tmp_path, "class Solution:\n    def add(self, a, b):\n        for n in range(100): print(n)\n        return 0", spec)
     assert "... and 70 more lines" in report("Add", judge_folder(noisy))
+
+
+def test_state_kept_on_the_class_leaks_from_case_to_case_as_it_would_on_leetcode(tmp_path):
+    from leetkit.run import judge_folder
+    spec = {"class": "Bag", "cases": [{"name": "first", "ops": ["Bag", "put", "size"], "args": [[], [1], []], "expected": [None, None, 1]},
+                                      {"name": "second", "ops": ["Bag", "put", "size"], "args": [[], [2], []], "expected": [None, None, 1]}]}
+    folder = problem(tmp_path, """
+        class Bag:
+            items = []                                  # shared by every Bag: the slip
+            def put(self, x): self.items.append(x)
+            def size(self): return len(self.items)
+        """, spec)
+    result = judge_folder(folder)
+    assert (result.verdict, result.case, result.passed) == ("Wrong Answer", "second", 1)
