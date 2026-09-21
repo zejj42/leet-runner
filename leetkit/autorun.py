@@ -23,7 +23,8 @@ def install() -> None:
     _installed = True
     try:
         script = Path(sys.argv[0]) if sys.argv and sys.argv[0] else None
-        if script is None or script.name != "solution.py":
+        # Code Runner runs a selection from a temporary copy with this name; it still means "judge this problem".
+        if script is None or script.name not in ("solution.py", "tempCodeRunnerFile.py"):
             return
         folder = script.resolve().parent
         if (folder / "cases.json").exists():

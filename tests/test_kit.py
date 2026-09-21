@@ -317,3 +317,15 @@ def test_other_files_are_left_alone(tmp_path):
                           "import atexit; print('hooks', atexit._ncallbacks())", str(tmp_path / "scratch.py")],
                          capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parent.parent)})
     assert "hooks 0" in run.stdout, run.stdout + run.stderr
+
+
+def test_a_selection_run_by_code_runner_still_judges_the_problem(tmp_path):
+    """Code Runner runs selected text from tempCodeRunnerFile.py in the same folder. The judge reads solution.py itself."""
+    root = Path(__file__).resolve().parent.parent
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", ADD)
+    (folder / "tempCodeRunnerFile.py").write_text("x = 1\n")
+    starter = ("import sys, runpy; sys.argv = [sys.argv[1]]; import leetkit.autorun as a; a._installed = False; a.install(); "
+               "runpy.run_path(sys.argv[0], run_name='__main__')")
+    run = subprocess.run([sys.executable, "-c", starter, str(folder / "tempCodeRunnerFile.py")], capture_output=True, text=True,
+                         env={**os.environ, "PYTHONPATH": str(root)})
+    assert "all 1 passed" in run.stdout, run.stdout + run.stderr
