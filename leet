@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
-# ./leet <command>: the project's own Python once ./leet setup has made it, otherwise whatever python3 there is.
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# leet <command>. `./leet setup` links this file into ~/.local/bin, so it has to find the repo through that link.
+# It runs the project's own Python once setup has made it, otherwise whatever python3 there is.
+source="${BASH_SOURCE[0]}"
+while [ -L "$source" ]; do
+  folder="$(cd -P "$(dirname "$source")" && pwd)"
+  source="$(readlink "$source")"
+  [[ "$source" != /* ]] && source="$folder/$source"
+done
+root="$(cd -P "$(dirname "$source")" && pwd)"
 python="$root/.venv/bin/python"; [ -x "$python" ] || python="python3"
 cd "$root" && exec "$python" -m leetkit "$@"

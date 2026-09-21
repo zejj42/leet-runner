@@ -1,9 +1,10 @@
-"""./leet: list problems, scaffold one, test one, find the next, open one in VS Code."""
+"""leet: list problems, scaffold one, test one, find the next, open one in VS Code."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -56,6 +57,13 @@ def _setup(args) -> int:
     site = subprocess.check_output([str(python), "-c", "import sysconfig; print(sysconfig.get_paths()['purelib'])"], text=True).strip()
     # A .pth file: its first line puts this repo on the path, its second runs at every start of this Python.
     (Path(site) / "leetkit_autorun.pth").write_text(f"{ROOT}\nimport leetkit.autorun; leetkit.autorun.install()\n")
+    link = Path.home() / ".local" / "bin" / "leet"          # `leet` from any folder, without the ./
+    if link.is_symlink() or not link.exists():
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.unlink(missing_ok=True)
+        link.symlink_to(ROOT / "leet")
+    if str(link.parent) not in os.environ.get("PATH", "").split(os.pathsep):
+        print(f"{link.parent} is not on your PATH, so keep typing ./leet from this folder.")
     from .colours import install
     if not install():
         print("VS Code's `code` command was not found, so the verdict in the Output panel stays uncoloured.")
@@ -69,7 +77,7 @@ def _new(args) -> int:
     folder = scaffold(problem, force=args.force)
     print(f"{problem.label}  {problem.title}  ({problem.difficulty})")
     print(f"  {folder.relative_to(ROOT)}/solution.py   ← write here")
-    print(f"  ./leet test {problem.label.lstrip('0') or '0'}")
+    print(f"  leet test {problem.label.lstrip('0') or '0'}")
     return 0
 
 
@@ -78,12 +86,12 @@ def _test(args) -> int:
     if args.problem:
         problem = find(args.problem)
         if not problem.folder.exists():
-            raise LookupError(f"{problem.title} has no folder yet. Create it with: ./leet new {args.problem}")
+            raise LookupError(f"{problem.title} has no folder yet. Create it with: leet new {args.problem}")
         return 0 if judge_and_report(problem.folder).verdict in ("Accepted", "Not started") else 1
 
     problems = [p for p in all_problems() if p.folder.exists()]
     if not problems:
-        raise LookupError("Nothing to test yet. Start with: ./leet new 1")
+        raise LookupError("Nothing to test yet. Start with: leet new 1")
     print()
     failed = 0
     for problem in problems:                                 # everything you have started: one line each
@@ -99,7 +107,7 @@ def _list(args) -> int:
     results = _load_results()
     problems = all_problems() if args.all else [p for p in all_problems() if p.folder.exists()]
     if not problems:
-        print("No problems yet. Start with: ./leet new 1      (the whole list: ./leet list --all)")
+        print("No problems yet. Start with: leet new 1      (the whole list: leet list --all)")
         return 0
     section = None
     for p in problems:
@@ -119,7 +127,7 @@ def _next(args) -> int:
     for p in all_problems():
         if results.get(p.label) != "passed":
             print(f"{p.label}  {p.title}  ({p.difficulty}, {p.topic})")
-            print(f"  ./leet test {p.number or p.label}" if p.folder.exists() else f"  ./leet new {p.number or p.label}")
+            print(f"  leet test {p.number or p.label}" if p.folder.exists() else f"  leet new {p.number or p.label}")
             return 0
     print("Every problem passes. Take a bow.")
     return 0
@@ -128,7 +136,7 @@ def _next(args) -> int:
 def _open(args) -> int:
     problem = find(args.problem)
     if not problem.folder.exists():
-        raise LookupError(f"{problem.title} has no folder yet. Create it with: ./leet new {args.problem}")
+        raise LookupError(f"{problem.title} has no folder yet. Create it with: leet new {args.problem}")
     if shutil.which("code") is None:
         print(problem.folder)
         return 0

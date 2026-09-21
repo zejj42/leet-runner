@@ -6,25 +6,27 @@ The LeetTracker list (the 169 chart problems, then the off-list ones), to solve 
 
     ./leet setup
 
+That also links the command into `~/.local/bin`, so from then on it is `leet`, from any folder.
+
 Then open the folder in VS Code and accept the recommended Python extension.
 
 ## Day to day
 
 Open a problem's `solution.py`, write your code, and press **▶ (Run Python File)** at the top right.
 That judges the file against its cases and prints a verdict for each. F5 does the same with your breakpoints.
-The Code Runner extension's ▶ works too: the workspace settings point it at this project's Python. `./leet setup`
+The Code Runner extension's ▶ works too: the workspace settings point it at this project's Python. `leet setup`
 also installs a tiny extension (vscode/verdict-colours, a grammar and no code) that colours the verdict there.
 
-    ./leet next            the first problem on the list you have not passed
-    ./leet new 2           create problem 2's folder from LeetCode (number, lc904, slug, or part of the title)
-    ./leet list            how each problem stands        --all for the whole list
-    ./leet open 2          open its statement and solution in VS Code
-    ./leet test 2          the same judging from the terminal
-    ./leet test            everything you have started
+    leet next            the first problem on the list you have not passed
+    leet new 2           create problem 2's folder from LeetCode (number, lc904, slug, or part of the title)
+    leet list            how each problem stands        --all for the whole list
+    leet open 2          open its statement and solution in VS Code
+    leet test 2          the same judging from the terminal
+    leet test            everything you have started
 
 The Testing panel (the flask icon) also lists every case of every problem.
 
-How ▶ works, since a `solution.py` holds nothing but your class: `./leet setup` adds one line to the virtual
+How ▶ works, since a `solution.py` holds nothing but your class: `leet setup` adds one line to the virtual
 environment that notices when the file being run is a `solution.py` with a `cases.json` beside it, and judges it
 once it has loaded. `leetkit/autorun.py` is all of it. Nothing else you run with this Python is affected.
 
@@ -37,7 +39,7 @@ once it has loaded. `leetkit/autorun.py` is all of it. Nothing else you run with
       test_solution.py   turns cases.json into tests; extra tests of your own go below
 
 Open a README's preview with ⇧⌘V: `.vscode/markdown.css` colours it, in light and dark.
-`./leet new 2 --force` refreshes a problem's test file and nothing else. To get LeetCode's statement again, delete the README first.
+`leet new 2 --force` refreshes a problem's test file and nothing else. To get LeetCode's statement again, delete the README first.
 
 A solution that still raises `NotImplementedError` counts as "not started": its tests are skipped, not failed.
 

@@ -1,6 +1,6 @@
 """What makes ▶ work: running a problem's solution.py as a script judges it.
 
-A solution.py holds only your class, so running it would do nothing. `./leet setup` puts one line in the
+A solution.py holds only your class, so running it would do nothing. `leet setup` puts one line in the
 virtual environment (a .pth file) that calls install() whenever Python starts. install() looks at what is
 being run, and only if it is a solution.py sitting next to a cases.json does it arrange for the judge to
 run once the file has finished loading. Everything else Python does in this environment is left alone.

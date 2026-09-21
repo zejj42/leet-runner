@@ -3,7 +3,7 @@ when it is not Accepted, the first case that went wrong and nothing after it.
 
     python -m leetkit.run problems/001_two_sum
 
-This is what pressing ▶ on a solution.py shows, and what ./leet test prints.
+This is what pressing ▶ on a solution.py shows, and what leet test prints.
 """
 
 from __future__ import annotations
@@ -95,7 +95,7 @@ def title_of(folder: Path) -> str:
 
 
 def remember(folder: Path, result: Result) -> None:
-    """So that ./leet list and ./leet next know how this problem stands."""
+    """So that leet list and leet next know how this problem stands."""
     import json
     from .catalog import PROBLEMS_DIR, ROOT, find
     if folder.resolve().parent != PROBLEMS_DIR.resolve():
