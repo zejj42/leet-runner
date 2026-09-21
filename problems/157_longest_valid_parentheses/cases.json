@@ -22,6 +22,12 @@
     {"name": "valid pairs surrounding a broken one", "args": ["()())()"], "expected": 4},
     {"name": "gap between two valid groups", "args": ["(())(()"], "expected": 4},
     {"name": "one long valid run of nested pairs", "args": ["()(()())"], "expected": 8},
+    {"name": "the string ())))", "args": ["())))"], "expected": 2},
+    {"name": "the string ((()()())", "args": ["((()()())"], "expected": 8},
+    {"name": "the string ()(())", "args": ["()(())"], "expected": 6},
+    {"name": "the string ()(()", "args": ["()(()"], "expected": 2},
+    {"name": "the string )((((()()((()()))", "args": [")((((()()((()()))"], "expected": 12},
+    {"name": "the string ))", "args": ["))"], "expected": 0},
     {"name": "largest input, one fully nested run", "file": "large_nested.json.gz", "large": true},
     {"name": "largest input, repeating broken triples", "file": "large_repeating.json.gz", "large": true}
   ]

@@ -18,6 +18,16 @@
     {"name": "all twenty six letters once", "args": ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1], "expected": 2},
     {"name": "majority one letter with rare others", "args": ["AAAAABAAAAA", 1], "expected": 11},
     {"name": "one letter then two of another, no replacements allowed", "args": ["ABB", 0], "expected": 2},
+    {"name": "AAAA with k = 2", "args": ["AAAA", 2], "expected": 4},
+    {"name": "ABCDE with k = 1", "args": ["ABCDE", 1], "expected": 2},
+    {"name": "AAABBBCCC with k = 3", "args": ["AAABBBCCC", 3], "expected": 6},
+    {"name": "AABAC with k = 2", "args": ["AABAC", 2], "expected": 5},
+    {"name": "BAAAB with k = 2", "args": ["BAAAB", 2], "expected": 5},
+    {"name": "ABABA with k = 0", "args": ["ABABA", 0], "expected": 1},
+    {"name": "A with k = 1", "args": ["A", 1], "expected": 1},
+    {"name": "ZZ with k = 1", "args": ["ZZ", 1], "expected": 2},
+    {"name": "CBAAABCD with k = 1", "args": ["CBAAABCD", 1], "expected": 4},
+    {"name": "ABCB with k = 1", "args": ["ABCB", 1], "expected": 3},
     {"name": "near max length, few distinct letters", "file": "large_input.json.gz", "large": true}
   ]
 }

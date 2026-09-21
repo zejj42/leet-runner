@@ -18,6 +18,15 @@
     {"name": "all equal points", "args": [[5, 5, 5, 5, 5], 3], "expected": 15},
     {"name": "k is half the deck", "args": [[1, 100, 1, 100, 1, 100], 3], "expected": 201},
     {"name": "large values near the cap", "args": [[10000, 1, 1, 1, 10000], 2], "expected": 20000},
+    {"name": "cards 1 1000 1, k = 1", "args": [[1, 1000, 1], 1], "expected": 1},
+    {"name": "cards 1 79 80 1 1 1 200 1, k = 3", "args": [[1, 79, 80, 1, 1, 1, 200, 1], 3], "expected": 202},
+    {"name": "cards 100 40 17 9 73 75, k = 3", "args": [[100, 40, 17, 9, 73, 75], 3], "expected": 248},
+    {"name": "cards 1 2 3 4 5 6 7 8 9 10, k = 5", "args": [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 5], "expected": 40},
+    {"name": "cards 11 49 100 20 86 29 72, k = 4", "args": [[11, 49, 100, 20, 86, 29, 72], 4], "expected": 232},
+    {"name": "cards 1 100 1 1 1 1 50, k = 2", "args": [[1, 100, 1, 1, 1, 1, 50], 2], "expected": 101},
+    {"name": "cards 5 5 1 5 5, k = 4", "args": [[5, 5, 1, 5, 5], 4], "expected": 20},
+    {"name": "cards 2 9, k = 1", "args": [[2, 9], 1], "expected": 9},
+    {"name": "cards 2 5, k = 2", "args": [[2, 5], 2], "expected": 7},
     {"name": "near max length, k near half", "file": "large_input.json.gz", "large": true}
   ]
 }

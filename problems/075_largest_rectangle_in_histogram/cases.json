@@ -23,6 +23,15 @@
     {"name": "plateau with a dip in the middle", "args": [[5, 5, 5, 1, 5, 5, 5]], "expected": 15},
     {"name": "every bar at the maximum height", "args": [[10000, 10000, 10000, 10000]], "expected": 40000},
     {"name": "alternating tall and short", "args": [[8, 1, 8, 1, 8, 1]], "expected": 8},
+    {"name": "heights 1 1 1 1", "args": [[1, 1, 1, 1]], "expected": 4},
+    {"name": "heights 6 2 5 4 5 1 6", "args": [[6, 2, 5, 4, 5, 1, 6]], "expected": 12},
+    {"name": "heights 0 9", "args": [[0, 9]], "expected": 9},
+    {"name": "heights 2 1 2 3 1", "args": [[2, 1, 2, 3, 1]], "expected": 5},
+    {"name": "heights 2 0 2", "args": [[2, 0, 2]], "expected": 2},
+    {"name": "heights 1 2 3", "args": [[1, 2, 3]], "expected": 4},
+    {"name": "heights 1 4 1 0", "args": [[1, 4, 1, 0]], "expected": 4},
+    {"name": "heights 3 2 1", "args": [[3, 2, 1]], "expected": 4},
+    {"name": "heights 2 3 2", "args": [[2, 3, 2]], "expected": 6},
     {"name": "largest input, strictly increasing then capped", "file": "large_increasing.json.gz", "large": true},
     {"name": "largest input, random heights", "file": "large_random.json.gz", "large": true}
   ]

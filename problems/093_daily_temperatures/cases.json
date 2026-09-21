@@ -19,6 +19,13 @@
     {"name": "alternating temperatures", "args": [[50, 40, 50, 40, 50]], "expected": [0, 1, 0, 1, 0]},
     {"name": "equal temperatures before a warmer one", "args": [[50, 50, 60]], "expected": [2, 1, 0]},
     {"name": "long wait for a warmer day", "args": [[50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 51]], "expected": [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]},
+    {"name": "temperatures 70 60 50 40", "args": [[70, 60, 50, 40]], "expected": [0, 0, 0, 0]},
+    {"name": "temperatures 50 55 60 55 50", "args": [[50, 55, 60, 55, 50]], "expected": [1, 1, 0, 0, 0]},
+    {"name": "temperatures 72 72 72 72", "args": [[72, 72, 72, 72]], "expected": [0, 0, 0, 0]},
+    {"name": "temperatures 90 50 60 70 80", "args": [[90, 50, 60, 70, 80]], "expected": [0, 1, 1, 1, 0]},
+    {"name": "temperatures 80 60 70 90 50 60", "args": [[80, 60, 70, 90, 50, 60]], "expected": [3, 1, 1, 0, 1, 0]},
+    {"name": "temperatures 70", "args": [[70]], "expected": [0]},
+    {"name": "temperatures 70 70 72", "args": [[70, 70, 72]], "expected": [2, 1, 0]},
     {"name": "large random daily temperatures", "file": "large_random.json.gz", "large": true},
     {"name": "large array, all the same temperature", "file": "large_flat.json.gz", "large": true}
   ]
