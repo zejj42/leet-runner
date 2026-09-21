@@ -13,7 +13,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
 
 ## Usage
 
-    leet code <problem>     edit the problem's solution.py in vim
+    leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet test <problem>     judge problems/<problem>/solution.py
     leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
     leet open <problem>     open the statement and solution.py in VS Code

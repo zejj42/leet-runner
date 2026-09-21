@@ -447,11 +447,19 @@ def test_recursing_down_a_very_long_list_is_allowed_as_on_leetcode(tmp_path):
         """, spec))
 
 
-def test_leet_code_opens_the_solution_in_vim_from_inside_its_folder(monkeypatch, journal_file):
+@pytest.mark.parametrize("installed, chosen", [({"nvim", "vim"}, "nvim"), ({"vim"}, "vim"), ({"nvim"}, "nvim")])
+def test_leet_code_opens_the_solution_in_neovim_or_else_vim_from_inside_its_folder(monkeypatch, journal_file, installed, chosen):
     from leetkit import cli
     started = {}
-    monkeypatch.setattr(cli.shutil, "which", lambda name: "/usr/bin/vim")
+    monkeypatch.setattr(cli.shutil, "which", lambda name: f"/usr/bin/{name}" if name in installed else None)
     monkeypatch.setattr(cli.subprocess, "call", lambda command, cwd: started.update(command=command, cwd=cwd) or 0)
     assert cli.main(["code", "two", "sum"]) == 0
-    assert started == {"command": ["vim", "solution.py"], "cwd": find("two-sum").folder}
-    assert json.loads(journal_file.read_text())["problem"] == "two-sum"
+    assert started == {"command": [chosen, "solution.py"], "cwd": find("two-sum").folder}
+    entry = json.loads(journal_file.read_text())
+    assert (entry["problem"], entry["editor"]) == ("two-sum", chosen)
+
+
+def test_leet_code_says_so_when_there_is_no_editor(monkeypatch, capsys):
+    from leetkit import cli
+    monkeypatch.setattr(cli.shutil, "which", lambda name: None)
+    assert cli.main(["code", "two-sum"]) == 2 and "Neither nvim nor vim" in capsys.readouterr().err

@@ -1,4 +1,4 @@
-"""leet: write a problem in vim, test it, open it in VS Code, reset it to its empty state, set the repo up."""
+"""leet: write a problem in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
 def _run(argv: list[str], facts: dict) -> int:
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
     commands = parser.add_subparsers(dest="command", required=True, metavar="{code,test,open,reset,setup}")
-    commands.add_parser("code", help="edit a problem's solution.py in vim").add_argument("problem", nargs="+", help=_PROBLEM)
+    commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
     reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
@@ -96,10 +96,12 @@ def _test(args) -> int:
 def _code(args) -> int:
     problem = _in_the_repo(args.problem)
     args.facts["problem"] = problem.slug
-    if shutil.which("vim") is None:
-        raise LookupError("vim was not found on this machine.")
-    # vim starts inside the problem's folder, so :e cases.json and :e README.md are right there
-    return subprocess.call(["vim", "solution.py"], cwd=problem.folder)
+    editor = next((name for name in ("nvim", "vim") if shutil.which(name)), None)      # Neovim first
+    if editor is None:
+        raise LookupError("Neither nvim nor vim was found on this machine.")
+    args.facts["editor"] = editor
+    # The editor starts inside the problem's folder, so :e cases.json and :e README.md are right there.
+    return subprocess.call([editor, "solution.py"], cwd=problem.folder)
 
 
 def _open(args) -> int:
