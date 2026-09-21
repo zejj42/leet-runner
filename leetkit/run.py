@@ -3,7 +3,7 @@ when it is not Accepted, the first case that went wrong and nothing after it.
 
     python -m leetkit.run problems/001_two_sum
 
-This is what pressing ▶ on a solution.py shows, and what leet test prints.
+This is what pressing ▶ on a solution.py shows, and what `leet test` prints.
 """
 
 from __future__ import annotations
@@ -94,27 +94,9 @@ def title_of(folder: Path) -> str:
         return folder.name
 
 
-def remember(folder: Path, result: Result) -> None:
-    """So that leet list and leet next know how this problem stands."""
-    import json
-    from .catalog import PROBLEMS_DIR, ROOT, find
-    if folder.resolve().parent != PROBLEMS_DIR.resolve():
-        return                                  # a copy somewhere else is not this repo's progress
-    try:
-        label = find(folder.name).label
-    except LookupError:
-        return
-    path = ROOT / ".leet" / "results.json"
-    results = json.loads(path.read_text()) if path.exists() else {}
-    results[label] = "not started" if result.verdict == "Not started" else "passed" if result.accepted else "failed"
-    path.parent.mkdir(exist_ok=True)
-    path.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n")
-
-
 def judge_and_report(folder: Path) -> Result:
     result = judge_folder(folder)
     print(report(title_of(folder), result))
-    remember(folder, result)
     return result
 
 

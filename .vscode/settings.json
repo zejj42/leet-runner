@@ -17,8 +17,7 @@
   },
   "files.exclude": {
     "**/__pycache__": true,
-    "**/.pytest_cache": true,
-    ".leet": true
+    "**/.pytest_cache": true
   },
   "files.associations": {
     "cases.json": "jsonc"

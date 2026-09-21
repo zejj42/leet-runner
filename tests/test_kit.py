@@ -354,3 +354,16 @@ def test_the_colour_extension_packs_into_something_vs_code_can_install(tmp_path)
     names = zipfile.ZipFile(pack(tmp_path / "colours.vsix")).namelist()
     assert {"[Content_Types].xml", "extension.vsixmanifest", "extension/package.json",
             "extension/syntaxes/verdict.tmLanguage.json"} <= set(names)
+
+
+# ---- the leet command
+
+def test_the_command_takes_a_number_a_slug_or_title_words_and_nothing_else(capsys):
+    from leetkit import cli
+    for words in (["1"], ["two-sum"], ["Two", "Sum"], ["001_two_sum"]):
+        assert cli._in_the_repo(words).slug == "two-sum"
+    assert cli.main(["test", "no-such-problem-at-all"]) == 2 and "No problem matches" in capsys.readouterr().err
+    assert cli.main(["test", "valid-parentheses"]) in (0, 1, 2)            # on the list; judged once its folder exists
+    for gone in (["new", "2"], ["list"], ["next"], ["test"], ["open"]):
+        with pytest.raises(SystemExit):
+            cli.main(gone)

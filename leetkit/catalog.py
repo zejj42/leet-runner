@@ -67,5 +67,5 @@ def find(reference: str) -> Problem:
     if len(matches) == 1:
         return matches[0]
     if not matches:
-        raise LookupError(f"No problem matches '{reference}'. Try leet list --all")
+        raise LookupError(f"No problem matches '{reference}'. Use its number on the list, or the slug from its LeetCode address, like two-sum.")
     raise LookupError(f"'{reference}' matches several: " + ", ".join(f"{p.label} {p.title}" for p in matches[:6]))

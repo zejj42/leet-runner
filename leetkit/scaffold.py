@@ -169,3 +169,9 @@ from leetkit import problem_tests
 
 test_case = problem_tests(__file__)
 '''
+
+
+if __name__ == "__main__":                                  # python -m leetkit.scaffold two-sum [--force]
+    import sys
+    from .catalog import find
+    print(scaffold(find(sys.argv[1]), force="--force" in sys.argv))

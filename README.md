@@ -17,12 +17,11 @@ That judges the file against its cases and prints a verdict for each. F5 does th
 The Code Runner extension's ▶ works too: the workspace settings point it at this project's Python. `leet setup`
 also installs a tiny extension (vscode/verdict-colours, a grammar and no code) that colours the verdict there.
 
-    leet next            the first problem on the list you have not passed
-    leet new 2           create problem 2's folder from LeetCode (number, lc904, slug, or part of the title)
-    leet list            how each problem stands        --all for the whole list
-    leet open 2          open its statement and solution in VS Code
-    leet test 2          the same judging from the terminal
-    leet test            everything you have started
+    leet open two-sum    open its statement and solution in VS Code
+    leet test two-sum    the same judging from the terminal
+
+A problem is named by its LeetCode slug (`two-sum`, the end of its address), its number on the list (`1`),
+or words from its title (`"two sum"`).
 
 The Testing panel (the flask icon) also lists every case of every problem.
 
@@ -39,7 +38,8 @@ once it has loaded. `leetkit/autorun.py` is all of it. Nothing else you run with
       test_solution.py   turns cases.json into tests; extra tests of your own go below
 
 Open a README's preview with ⇧⌘V: `.vscode/markdown.css` colours it, in light and dark.
-`leet new 2 --force` refreshes a problem's test file and nothing else. To get LeetCode's statement again, delete the README first.
+
+A folder is made from LeetCode with `python -m leetkit.scaffold two-sum`; it never overwrites a solution, cases or a README.
 
 A solution that still raises `NotImplementedError` counts as "not started": its tests are skipped, not failed.
 
