@@ -64,7 +64,7 @@ def test_an_accepted_problem_is_marked_solved_in_the_list_and_stays_so(tmp_path,
     capsys.readouterr()
     assert cli.main(["list"]) == 0
     said = capsys.readouterr().out
-    assert "─····  001     Two Sum" in said and "1 of 1 solved" in said
+    assert "一・・・・  001     Two Sum" in said and "1 of 1 solved" in said
 
     elsewhere = tmp_path / "copies" / "003_merge_two_sorted_lists"; elsewhere.mkdir(parents=True)
     problem(elsewhere, "class Solution:\n    def add(self, a, b): return a + b", ADD)
@@ -141,8 +141,12 @@ def test_a_stroke_is_earned_by_a_new_solve_not_by_checking_again(tmp_path, monke
         progress.note_reset("two-sum"); judge_and_report(folder)
     capsys.readouterr()
     assert cli.main(["list"]) == 0
-    assert "─│─│─  001     Two Sum" in capsys.readouterr().out                  # seven solves: the five strokes, and no more
-    assert cli._strokes(3, terminal=True) == "\033[1;32m─│─\033[0m\033[2m│─\033[0m"
+    assert "一丨一丨一  001     Two Sum" in capsys.readouterr().out            # seven solves: the five strokes, and no more
+    assert cli._strokes(3, terminal=True) == "\033[1;32m一丨一\033[0m\033[2m丨一\033[0m"
+    monkeypatch.delenv("LEET_TALLY"); monkeypatch.setenv("TERM", "linux")           # the text console cannot draw Chinese
+    assert cli._strokes(3, terminal=False) == "─│─··"
+    monkeypatch.setenv("TERM", "xterm-256color"); monkeypatch.setenv("LEET_TALLY", "plain")
+    assert cli._strokes(5, terminal=False) == "─│─│─"
 
 
 def test_the_older_progress_file_reads_as_one_solve_each(journal_file):

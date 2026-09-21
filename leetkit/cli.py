@@ -129,16 +129,27 @@ def _list(args) -> int:
     return 0
 
 
-_ZHENG = "─│─│─"          # 正 taken apart, in the order its five strokes are written
+# 正 taken apart, in the order its five strokes are written: 一 丨 一 丨 一. The Linux text console has no Chinese
+# characters at all, so there, and wherever LEET_TALLY=plain says so, the strokes are drawn with line characters.
+_ZHENG = {"cjk": ("一丨一丨一", "・"), "plain": ("─│─│─", "·")}
+
+
+def _stroke_style() -> str:
+    asked = os.environ.get("LEET_TALLY", "").lower()
+    if asked in _ZHENG:
+        return asked
+    utf8 = "utf" in (getattr(sys.stdout, "encoding", "") or "").lower()
+    return "plain" if os.environ.get("TERM") == "linux" or not utf8 else "cjk"
 
 
 def _strokes(solved: int, terminal: bool) -> str:
     """One stroke of 正 per solve, the full five at most: lit strokes green, the others faint. Without colours, a dot
     stands for a stroke not yet earned."""
-    lit = min(solved, len(_ZHENG))
+    strokes, dot = _ZHENG[_stroke_style()]
+    lit = min(solved, len(strokes))
     if terminal:
-        return f"\033[1;32m{_ZHENG[:lit]}\033[0m\033[2m{_ZHENG[lit:]}\033[0m"
-    return _ZHENG[:lit] + "·" * (len(_ZHENG) - lit)
+        return f"\033[1;32m{strokes[:lit]}\033[0m\033[2m{strokes[lit:]}\033[0m"
+    return strokes[:lit] + dot * (len(strokes) - lit)
 
 
 def _topic(problem: Problem) -> str:
