@@ -509,3 +509,17 @@ def test_a_problem_without_a_solution_file_gets_its_empty_stub(tmp_path, monkeyp
     (two_sum.folder / "solution.py").write_text("mine")
     cli.lay_out_solutions()
     assert (two_sum.folder / "solution.py").read_text() == "mine"
+
+
+def test_open_says_why_when_vs_code_cannot_open_a_window(monkeypatch, capsys):
+    from leetkit import cli
+    monkeypatch.setattr(cli.subprocess, "call", lambda command: 0)
+    monkeypatch.setattr(cli.shutil, "which", lambda name: "/usr/bin/code")
+    monkeypatch.setenv("SSH_CONNECTION", "10.0.0.6 1 10.0.0.12 22")
+    monkeypatch.delenv("TERM_PROGRAM", raising=False)
+    assert cli.main(["open", "two-sum"]) == 1 and "ssh session" in capsys.readouterr().out
+    monkeypatch.setenv("TERM_PROGRAM", "vscode")                  # VS Code's own remote terminal can
+    assert cli.main(["open", "two-sum"]) == 0
+    monkeypatch.delenv("SSH_CONNECTION")
+    monkeypatch.setattr(cli.shutil, "which", lambda name: None)
+    assert cli.main(["open", "two-sum"]) == 1 and "leet code two-sum" in capsys.readouterr().out

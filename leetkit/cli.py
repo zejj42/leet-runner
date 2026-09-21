@@ -111,9 +111,12 @@ def _code(args) -> int:
 def _open(args) -> int:
     problem = _in_the_repo(args.problem)
     args.facts["problem"] = problem.slug
-    if shutil.which("code") is None:
-        print(problem.folder)
-        return 0
+    # VS Code needs a screen to open a window on. Over ssh there is none, unless this is VS Code's own remote terminal.
+    over_ssh = "SSH_CONNECTION" in os.environ and os.environ.get("TERM_PROGRAM") != "vscode"
+    if shutil.which("code") is None or over_ssh:
+        why = "this is an ssh session, with no screen for VS Code to open on" if over_ssh else "VS Code's `code` command is not on this machine"
+        print(f"Not opened: {why}.\nEdit it here instead:  leet code {problem.slug}\nIts folder:  {problem.folder}")
+        return 1
     return subprocess.call(["code", str(ROOT), str(problem.folder / "README.md"), str(problem.folder / "solution.py")])
 
 
