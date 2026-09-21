@@ -129,7 +129,8 @@ def _stub(problem: Problem, question: dict, meta: dict) -> str:
     uses_nodes = [name for name in ("ListNode", "TreeNode") if name in snippet]
     snippet = _fill_bodies(_drop_leading_comments(snippet))
 
-    header = [f'"""{question["questionFrontendId"]}. {question["title"]}  ({question["difficulty"]})', problem.url, '"""', ""]
+    header = [f'"""{question["questionFrontendId"]}. {question["title"]}  ({question["difficulty"]})', problem.url, "",
+              "Press ▶ (Run Python File) to test this file.", '"""', ""]
     typing_names = [name for name in ("List", "Optional", "Dict", "Set", "Tuple") if re.search(rf"\b{name}\[", snippet)]
     if typing_names:
         header.append(f"from typing import {', '.join(typing_names)}")

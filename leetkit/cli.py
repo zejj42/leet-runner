@@ -31,19 +31,36 @@ def main(argv: list[str] | None = None) -> int:
     listing = commands.add_parser("list", help="what you have, and how it stands")
     listing.add_argument("--all", action="store_true", help="the whole list, including problems without a folder")
 
+    commands.add_parser("setup", help="create the virtual environment and make ▶ on a solution.py run its tests")
     commands.add_parser("next", help="the first problem on the list you have not passed")
     opening = commands.add_parser("open", help="open a problem in VS Code")
     opening.add_argument("problem")
 
     args = parser.parse_args(argv)
     try:
-        return {"new": _new, "test": _test, "list": _list, "next": _next, "open": _open}[args.command](args)
+        return {"new": _new, "test": _test, "list": _list, "next": _next, "open": _open, "setup": _setup}[args.command](args)
     except (LookupError, FileExistsError) as problem:
         print(f"leet: {problem}", file=sys.stderr)
         return 2
 
 
 # ---- commands
+
+def _setup(args) -> int:
+    import sysconfig
+    import venv
+    environment = ROOT / ".venv"
+    if not (environment / "bin" / "python").exists():
+        print("Creating .venv ...")
+        venv.create(environment, with_pip=True)
+    python = environment / "bin" / "python"
+    subprocess.check_call([str(python), "-m", "pip", "install", "-q", "-r", str(ROOT / "requirements.txt")])
+    site = subprocess.check_output([str(python), "-c", "import sysconfig; print(sysconfig.get_paths()['purelib'])"], text=True).strip()
+    # A .pth file: its first line puts this repo on the path, its second runs at every start of this Python.
+    (Path(site) / "leetkit_autorun.pth").write_text(f"{ROOT}\nimport leetkit.autorun; leetkit.autorun.install()\n")
+    print("Ready. Open a solution.py and press ▶ (Run Python File) to test it.")
+    return 0
+
 
 def _new(args) -> int:
     from .scaffold import scaffold

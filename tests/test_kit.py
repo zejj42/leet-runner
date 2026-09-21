@@ -280,3 +280,39 @@ def test_scaffolding_never_overwrites_what_you_may_have_written(tmp_path, monkey
     assert (folder / "cases.json").read_text() == '{"mine": true}'
     assert (folder / "scratch.py").read_text() == "mine too"
     assert (folder / "README.md").read_text() != "stale"                                # only what comes from LeetCode is refreshed
+
+
+# ---- pressing ▶ on a solution.py
+
+def _run_as_script(folder: Path, extra_env: dict | None = None) -> subprocess.CompletedProcess:
+    """Runs solution.py the way ▶ does, with the hook installed by hand instead of by the .pth file."""
+    root = Path(__file__).resolve().parent.parent
+    starter = ("import sys, runpy; sys.argv = [sys.argv[1]]; import leetkit.autorun as a; a.install(); "
+               "runpy.run_path(sys.argv[0], run_name='__main__')")
+    return subprocess.run([sys.executable, "-c", starter, str(folder / "solution.py")], capture_output=True, text=True,
+                          env={**os.environ, "PYTHONPATH": str(root), **(extra_env or {})})
+
+
+def test_running_a_solution_file_judges_it(tmp_path):
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", ADD)
+    run = _run_as_script(folder)
+    assert "✓ small" in run.stdout and "all 1 passed" in run.stdout
+
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a - b", ADD)
+    run = _run_as_script(folder)
+    assert "✗ small" in run.stdout and "expected   5" in run.stdout and "1 of 1 failed" in run.stdout
+
+
+def test_a_crash_is_reported_with_its_line_in_your_file(tmp_path):
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b):\n        return a / 0", ADD)
+    assert "line 3: ZeroDivisionError" in _run_as_script(folder).stdout
+
+
+def test_other_files_are_left_alone(tmp_path):
+    from leetkit import autorun
+    (tmp_path / "scratch.py").write_text("print('hello')")
+    (tmp_path / "cases.json").write_text("{}")
+    run = subprocess.run([sys.executable, "-c", "import sys; sys.argv=[sys.argv[1]]; import leetkit.autorun as a; a.install(); "
+                          "import atexit; print('hooks', atexit._ncallbacks())", str(tmp_path / "scratch.py")],
+                         capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parent.parent)})
+    assert "hooks 0" in run.stdout, run.stdout + run.stderr

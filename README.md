@@ -4,22 +4,27 @@ The LeetTracker list (the 169 chart problems, then the off-list ones), to solve 
 
 ## Setup, once
 
-    python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+    ./leet setup
 
-Open the folder in VS Code and accept the recommended Python extension.
+Then open the folder in VS Code and accept the recommended Python extension.
 
 ## Day to day
 
+Open a problem's `solution.py`, write your code, and press **▶ (Run Python File)** at the top right.
+That judges the file against its cases and prints a verdict for each. F5 does the same with your breakpoints.
+
     ./leet next            the first problem on the list you have not passed
     ./leet new 2           create problem 2's folder from LeetCode (number, lc904, slug, or part of the title)
-    ./leet test 2          run its tests        add --stress for the large cases
-    ./leet test            run everything you have started
     ./leet list            how each problem stands        --all for the whole list
     ./leet open 2          open its statement and solution in VS Code
+    ./leet test 2 --stress the same judging from the terminal, here with the large cases too
+    ./leet test            everything you have started
 
-In VS Code: write in `solution.py`, then **Terminal > Run Test Task** (or ⇧⌘P "Run Test Task") tests the
-problem whose file is open. The Testing panel lists every case. F5 with "Debug this problem's tests" stops
-at your breakpoints; "Run this file" runs the little `__main__` block at the bottom of a solution.
+The Testing panel (the flask icon) also lists every case of every problem.
+
+How ▶ works, since a `solution.py` holds nothing but your class: `./leet setup` adds one line to the virtual
+environment that notices when the file being run is a `solution.py` with a `cases.json` beside it, and judges it
+once it has loaded. `leetkit/autorun.py` is all of it. Nothing else you run with this Python is affected.
 
 ## A problem's folder
 

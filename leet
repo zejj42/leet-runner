@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ./leet <command>: the project's own Python if it has been set up, otherwise whatever python3 there is.
+# ./leet <command>: the project's own Python once ./leet setup has made it, otherwise whatever python3 there is.
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 python="$root/.venv/bin/python"; [ -x "$python" ] || python="python3"
 cd "$root" && exec "$python" -m leetkit "$@"
