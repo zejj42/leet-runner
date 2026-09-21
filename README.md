@@ -16,7 +16,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
     leet list               every problem in the repo, ✓ on the solved ones; a long list is paged with less (space: next page, q: quit)
     leet read <problem>     show the problem's statement
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
-    leet test <problem>     judge problems/<problem>/solution.py
+    leet check <problem>     judge problems/<problem>/solution.py
     leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
     leet startover          reset every solution.py and forget what was solved (asks first; -y skips the question)
     leet open <problem>     open the statement and solution.py in VS Code (needs a desktop session)
@@ -36,10 +36,10 @@ Write the solution with `leet code`, or in any editor, then:
 
     $ leet read two-sum
     $ leet code two-sum
-    $ leet test two-sum
+    $ leet check two-sum
     Two Sum   Accepted   15 / 15 testcases passed   4 ms
 
-    $ leet test two-sum
+    $ leet check two-sum
     Two Sum   Wrong Answer   1 / 15 testcases passed
 
       example 2
@@ -67,7 +67,7 @@ A problem is marked solved the first time it is Accepted, in `progress.json` (gi
 
 Every invocation is appended to `journal.jsonl` (git-ignored), one JSON object per line:
 
-    {"at": "2026-09-21T17:30:59", "command": "test", "args": ["two-sum"], "exit": 0, "problem": "two-sum", "verdict": "Accepted", "passed": 15, "total": 15, "ms": 3}
+    {"at": "2026-09-21T17:30:59", "command": "check", "args": ["two-sum"], "exit": 0, "problem": "two-sum", "verdict": "Accepted", "passed": 15, "total": 15, "ms": 3}
 
 ## Problem folder
 

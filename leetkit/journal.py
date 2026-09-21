@@ -1,6 +1,6 @@
 """journal.jsonl: one line for every time `leet` is run, whatever came of it.
 
-    {"at": "2026-09-21T17:40:03", "command": "test", "args": ["two-sum"], "exit": 0,
+    {"at": "2026-09-21T17:40:03", "command": "check", "args": ["two-sum"], "exit": 0,
      "problem": "two-sum", "verdict": "Accepted", "passed": 15, "total": 15, "ms": 4}
 
 It is yours, not the repo's: git ignores it. Writing it never gets in the way of the command itself.

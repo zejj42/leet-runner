@@ -16,9 +16,9 @@ def test_the_command_takes_a_number_a_slug_or_title_words_and_nothing_else(capsy
     from leetkit import cli
     for words in (["1"], ["two-sum"], ["Two", "Sum"], ["001_two_sum"]):
         assert cli._in_the_repo(words).slug == "two-sum"
-    assert cli.main(["test", "no-such-problem-at-all"]) == 2 and "No problem matches" in capsys.readouterr().err
-    assert cli.main(["test", "valid-parentheses"]) in (0, 1, 2)            # on the list; judged once its folder exists
-    for gone in (["new", "2"], ["next"], ["test"], ["open"]):
+    assert cli.main(["check", "no-such-problem-at-all"]) == 2 and "No problem matches" in capsys.readouterr().err
+    assert cli.main(["check", "valid-parentheses"]) in (0, 1, 2)            # on the list; judged once its folder exists
+    for gone in (["new", "2"], ["next"], ["test", "two-sum"], ["check"], ["open"]):
         with pytest.raises(SystemExit):
             cli.main(gone)
 
@@ -30,14 +30,14 @@ def test_every_command_is_journalled_whatever_came_of_it(journal_file, tmp_path,
     real = cli._in_the_repo
     added = type("P", (), {"slug": "add", "folder": folder, "title": "Add"})()
     monkeypatch.setattr(cli, "_in_the_repo", lambda words: added if words == ["add"] else real(words))
-    assert cli.main(["test", "add"]) == 1
-    assert cli.main(["test", "no-such-problem-at-all"]) == 2
+    assert cli.main(["check", "add"]) == 1
+    assert cli.main(["check", "no-such-problem-at-all"]) == 2
     with pytest.raises(SystemExit):
         cli.main(["next"])
 
     lines = [json.loads(line) for line in journal_file.read_text().splitlines()]
     assert [(line["command"], line["args"], line["exit"]) for line in lines] == [
-        ("test", ["add"], 1), ("test", ["no-such-problem-at-all"], 2), ("next", [], 2)]
+        ("check", ["add"], 1), ("check", ["no-such-problem-at-all"], 2), ("next", [], 2)]
     assert lines[0]["verdict"] == "Wrong Answer" and (lines[0]["passed"], lines[0]["total"]) == (0, 1)
     assert lines[0]["problem"] == "add" and lines[0]["failed_case"] == "small" and "at" in lines[0]
     assert "No problem matches" in lines[1]["error"]

@@ -1,4 +1,4 @@
-"""leet: list the problems, read one, write it in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up,
+"""leet: list the problems, read one, write it in Neovim or vim, check it, open it in VS Code, reset it to its empty state, set the repo up,
 update it."""
 
 from __future__ import annotations
@@ -38,11 +38,11 @@ def _run(argv: list[str], facts: dict) -> int:
     from .version import version
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{list,read,code,test,open,reset,startover,setup,update}")
+    commands = parser.add_subparsers(dest="command", required=True, metavar="{list,read,code,check,open,reset,startover,setup,update}")
     commands.add_parser("list", help="every problem in the repo")
     commands.add_parser("read", help="show a problem's statement").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
-    commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
+    commands.add_parser("check", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
     reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
     reset.add_argument("problem", nargs="+", help=_PROBLEM)
@@ -56,7 +56,7 @@ def _run(argv: list[str], facts: dict) -> int:
     args = parser.parse_args(argv)
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
-        return {"list": _list, "read": _read, "code": _code, "test": _test, "open": _open, "reset": _reset, "startover": _startover, "setup": _setup, "update": _update}[args.command](args)
+        return {"list": _list, "read": _read, "code": _code, "check": _check, "open": _open, "reset": _reset, "startover": _startover, "setup": _setup, "update": _update}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
         facts["error"] = str(problem)
@@ -89,11 +89,11 @@ def _setup(args) -> int:
     lay_out_solutions()
     from .colours import install
     install()                                               # only if VS Code is here; without it there is nothing to colour
-    print("Ready:  leet code two-sum   then   leet test two-sum")
+    print("Ready:  leet code two-sum   then   leet check two-sum")
     return 0
 
 
-def _test(args) -> int:
+def _check(args) -> int:
     from .run import judge_and_report
     problem = _in_the_repo(args.problem)
     args.facts["problem"] = problem.slug
@@ -260,7 +260,7 @@ def lay_out_solutions() -> None:
 
 
 def _in_the_repo(words: list[str]) -> Problem:
-    problem = find(" ".join(words))                          # leet test two sum, without quotes, works too
+    problem = find(" ".join(words))                          # leet check two sum, without quotes, works too
     if not problem.folder.exists():
         raise LookupError(f"{problem.title} is on the list, but its folder is not in the repo yet.")
     if not (problem.folder / "solution.py").exists() and problem.stub.exists():

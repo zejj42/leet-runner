@@ -1,7 +1,7 @@
 """Judges one problem and reports it the way LeetCode does: one verdict with the count of cases passed, and,
 when it is not Accepted, the first case that went wrong and nothing after it.
 
-This is what pressing ▶ on a solution.py shows, and what `leet test` prints.
+This is what pressing ▶ on a solution.py shows, and what `leet check` prints.
 """
 
 from __future__ import annotations
