@@ -445,3 +445,13 @@ def test_recursing_down_a_very_long_list_is_allowed_as_on_leetcode(tmp_path):
             def count(self, head):
                 return 0 if head is None else 1 + self.count(head.next)
         """, spec))
+
+
+def test_leet_code_opens_the_solution_in_vim_from_inside_its_folder(monkeypatch, journal_file):
+    from leetkit import cli
+    started = {}
+    monkeypatch.setattr(cli.shutil, "which", lambda name: "/usr/bin/vim")
+    monkeypatch.setattr(cli.subprocess, "call", lambda command, cwd: started.update(command=command, cwd=cwd) or 0)
+    assert cli.main(["code", "two", "sum"]) == 0
+    assert started == {"command": ["vim", "solution.py"], "cwd": find("two-sum").folder}
+    assert json.loads(journal_file.read_text())["problem"] == "two-sum"

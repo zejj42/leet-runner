@@ -12,6 +12,7 @@ A local judge for LeetCode problems, driven from the command line. Python 3.10+,
 
 ## Usage
 
+    leet code <problem>     edit the problem's solution.py in vim
     leet test <problem>     judge problems/<problem>/solution.py
     leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
     leet open <problem>     open the statement and solution.py in VS Code
@@ -25,8 +26,9 @@ A local judge for LeetCode problems, driven from the command line. Python 3.10+,
 | number on the list | `1` |
 | words of the title | `two sum` |
 
-Write the solution in `problems/<folder>/solution.py` with any editor, then:
+Write the solution with `leet code`, or in any editor, then:
 
+    $ leet code two-sum
     $ leet test two-sum
     Two Sum   Accepted   15 / 15 testcases passed   4 ms
 

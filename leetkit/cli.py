@@ -1,4 +1,4 @@
-"""leet: test a problem, open one in VS Code, reset one to its empty state, set the repo up."""
+"""leet: write a problem in vim, test it, open it in VS Code, reset it to its empty state, set the repo up."""
 
 from __future__ import annotations
 
@@ -35,7 +35,8 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run(argv: list[str], facts: dict) -> int:
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{test,open,reset,setup}")
+    commands = parser.add_subparsers(dest="command", required=True, metavar="{code,test,open,reset,setup}")
+    commands.add_parser("code", help="edit a problem's solution.py in vim").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
     reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
@@ -46,7 +47,7 @@ def _run(argv: list[str], facts: dict) -> int:
     args = parser.parse_args(argv)
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
-        return {"test": _test, "open": _open, "reset": _reset, "setup": _setup}[args.command](args)
+        return {"code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
         facts["error"] = str(problem)
@@ -89,6 +90,15 @@ def _test(args) -> int:
     args.facts.update(verdict=result.verdict, passed=result.passed, total=result.total, failed_case=result.case or None,
                       ms=result.milliseconds if result.accepted else None)
     return 0 if result.verdict in ("Accepted", "Not started") else 1
+
+
+def _code(args) -> int:
+    problem = _in_the_repo(args.problem)
+    args.facts["problem"] = problem.slug
+    if shutil.which("vim") is None:
+        raise LookupError("vim was not found on this machine.")
+    # vim starts inside the problem's folder, so :e cases.json and :e README.md are right there
+    return subprocess.call(["vim", "solution.py"], cwd=problem.folder)
 
 
 def _open(args) -> int:
