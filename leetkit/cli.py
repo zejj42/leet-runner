@@ -26,7 +26,6 @@ def main(argv: list[str] | None = None) -> int:
     test = commands.add_parser("test", help="run a problem's tests (or every problem's)")
     test.add_argument("problem", nargs="?", help="leave out to test everything you have started")
     test.add_argument("--stress", action="store_true", help="also run the large, slow cases")
-    test.add_argument("-v", "--verbose", action="store_true")
 
     listing = commands.add_parser("list", help="what you have, and how it stands")
     listing.add_argument("--all", action="store_true", help="the whole list, including problems without a folder")
@@ -73,40 +72,25 @@ def _new(args) -> int:
 
 
 def _test(args) -> int:
+    from .run import judge_and_report, judge_folder, one_line, remember
     if args.problem:
         problem = find(args.problem)
         if not problem.folder.exists():
             raise LookupError(f"{problem.title} has no folder yet. Create it with: ./leet new {args.problem}")
-        targets, problems = [str(problem.folder)], [problem]
-    else:
-        problems = [p for p in all_problems() if p.folder.exists()]
-        targets = [str(p.folder) for p in problems]
-        if not targets:
-            raise LookupError("Nothing to test yet. Start with: ./leet new 1")
+        return 0 if judge_and_report(problem.folder, stress=args.stress).verdict in ("Accepted", "Not started") else 1
 
-    report = ROOT / ".leet" / "last-run.xml"
-    report.parent.mkdir(exist_ok=True)
-    command = [sys.executable, "-m", "pytest", *targets, f"--junitxml={report}", "-q", "--no-header", "-rN",
-               "--tb=short", "-p", "no:cacheprovider"]
-    command += ["--stress"] if args.stress else []
-    command += ["-v"] if args.verbose else []
-    code = subprocess.call(command, cwd=ROOT)
+    problems = [p for p in all_problems() if p.folder.exists()]
+    if not problems:
+        raise LookupError("Nothing to test yet. Start with: ./leet new 1")
     print()
-    for problem, counts in _record(report, problems):
-        print(f"  {_verdict(counts)}  {problem.label}  {problem.title}")
-    return code
-
-
-def _verdict(counts: dict) -> str:
-    ran = counts["passed"] + counts["failed"]
-    held_back = f"   ({counts['skipped']} stress held back: --stress)" if counts["skipped"] else ""
-    if counts["timed out before"]:
-        return f"✗ ran out of time; {counts['timed out before']} later cases were not run"
-    if counts["failed"]:
-        return f"✗ {counts['failed']} of {ran} {'case' if ran == 1 else 'cases'} failed{held_back}"
-    if ran == 0:
-        return "· not started"
-    return f"✓ {'the one case' if ran == 1 else f'all {ran} cases'} passed{held_back}"
+    failed = 0
+    for problem in problems:                                 # everything you have started: one line each
+        result = judge_folder(problem.folder, stress=args.stress)
+        remember(problem.folder, result)
+        failed += result.verdict not in ("Accepted", "Not started")
+        print(f"  {problem.label}  {problem.title:<46} {one_line(result)}")
+    print()
+    return 1 if failed else 0
 
 
 def _list(args) -> int:
@@ -153,35 +137,3 @@ def _open(args) -> int:
 
 def _load_results() -> dict:
     return json.loads(_RESULTS.read_text()) if _RESULTS.exists() else {}
-
-
-def _record(report: Path, problems: list[Problem]) -> list[tuple[Problem, dict]]:
-    """Reads pytest's report, remembers how each problem stands, and hands back the counts for the summary."""
-    import xml.etree.ElementTree as ET
-    if not report.exists():
-        return []
-    by_folder: dict[str, list[str]] = {}
-    for case in ET.parse(report).getroot().iter("testcase"):
-        folder = next((part for part in case.get("classname", "").split(".") if part[:3].isdigit() or part.startswith("lc")), None)
-        if folder is None:
-            continue
-        failed = case.find("failure") is not None or case.find("error") is not None
-        skipped = case.find("skipped")
-        not_started = skipped is not None and "not started" in (skipped.get("message") or "")
-        message = (skipped.get("message") or "") if skipped is not None else ""
-        state = ("failed" if failed else "not started" if not_started else "timed out before" if "ran out of time" in message
-                 else "skipped" if skipped is not None else "passed")
-        by_folder.setdefault(folder, []).append(state)
-
-    results, summary = _load_results(), []
-    for p in problems:
-        states = by_folder.get(p.folder.name, [])
-        if not states:
-            continue
-        counts = {state: states.count(state) for state in ("passed", "failed", "not started", "skipped", "timed out before")}
-        # Stress cases that were held back do not count against you.
-        results[p.label] = "failed" if counts["failed"] else "passed" if counts["passed"] else "not started"
-        summary.append((p, counts))
-    _RESULTS.parent.mkdir(exist_ok=True)
-    _RESULTS.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n")
-    return summary

@@ -44,7 +44,9 @@ def test_a_wrong_answer_says_what_was_given_expected_and_got(tmp_path):
     with pytest.raises(WrongAnswer) as wrong:
         judge(problem(tmp_path, "class Solution:\n    def add(self, a, b): return a - b", ADD))
     message = str(wrong.value)
-    assert "a = 2" in message and "b = 3" in message and "expected   5" in message and "got        -1" in message
+    assert wrong.value.verdict == "Wrong Answer"
+    assert "Input       a = 2" in message and "b = 3" in message
+    assert "Output      -1" in message and "Expected    5" in message
 
 
 def test_an_untouched_stub_is_not_started_rather_than_wrong(tmp_path):
@@ -54,8 +56,9 @@ def test_an_untouched_stub_is_not_started_rather_than_wrong(tmp_path):
 
 def test_an_endless_loop_is_stopped(tmp_path):
     spec = {**ADD, "time_limit": 0.2}
-    with pytest.raises(WrongAnswer, match="Time limit"):
+    with pytest.raises(WrongAnswer) as wrong:
         judge(problem(tmp_path, "class Solution:\n    def add(self, a, b):\n        while True: pass", spec))
+    assert wrong.value.verdict == "Time Limit Exceeded"
 
 
 def test_a_crash_in_the_solution_surfaces_as_itself(tmp_path):
@@ -297,16 +300,20 @@ def _run_as_script(folder: Path, extra_env: dict | None = None) -> subprocess.Co
 def test_running_a_solution_file_judges_it(tmp_path):
     folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", ADD)
     run = _run_as_script(folder)
-    assert "✓ small" in run.stdout and "all 1 passed" in run.stdout
+    assert "Accepted   1 / 1 testcases passed" in run.stdout
+    assert "small" not in run.stdout                               # like LeetCode: no list of what passed
 
     folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a - b", ADD)
     run = _run_as_script(folder)
-    assert "✗ small" in run.stdout and "expected   5" in run.stdout and "1 of 1 failed" in run.stdout
+    assert "Wrong Answer   0 / 1 testcases passed" in run.stdout
+    assert "Output      -1" in run.stdout and "Expected    5" in run.stdout
 
 
 def test_a_crash_is_reported_with_its_line_in_your_file(tmp_path):
     folder = problem(tmp_path, "class Solution:\n    def add(self, a, b):\n        return a / 0", ADD)
-    assert "line 3: ZeroDivisionError" in _run_as_script(folder).stdout
+    out = _run_as_script(folder).stdout
+    assert "Runtime Error   0 / 1 testcases passed" in out and "ZeroDivisionError: division by zero     line 3" in out
+    assert "Last input  a = 2" in out
 
 
 def test_other_files_are_left_alone(tmp_path):
@@ -328,4 +335,14 @@ def test_a_selection_run_by_code_runner_still_judges_the_problem(tmp_path):
                "runpy.run_path(sys.argv[0], run_name='__main__')")
     run = subprocess.run([sys.executable, "-c", starter, str(folder / "tempCodeRunnerFile.py")], capture_output=True, text=True,
                          env={**os.environ, "PYTHONPATH": str(root)})
-    assert "all 1 passed" in run.stdout, run.stdout + run.stderr
+    assert "Accepted   1 / 1 testcases passed" in run.stdout, run.stdout + run.stderr
+
+
+def test_judging_stops_at_the_first_case_that_fails_and_counts_what_passed_before_it(tmp_path):
+    from leetkit.run import judge_folder
+    spec = {**ADD, "cases": [{"name": "one", "args": [1, 1], "expected": 2}, {"name": "two", "args": [2, 2], "expected": 5},
+                             {"name": "three", "args": [3, 3], "expected": 7}, {"name": "big", "args": [4, 4], "expected": 8, "stress": True}]}
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", spec)
+    result = judge_folder(folder)
+    assert (result.verdict, result.passed, result.total, result.case, result.held_back) == ("Wrong Answer", 1, 3, "two", 1)
+    assert judge_folder(folder, stress=True).total == 4

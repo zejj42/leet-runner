@@ -1,80 +1,103 @@
-"""Judges one problem and prints the verdicts, case by case. This is what pressing ▶ on a solution.py shows.
+"""Judges one problem and reports it the way LeetCode does: one verdict with the count of cases passed, and,
+when it is not Accepted, the first case that went wrong and nothing after it.
 
     python -m leetkit.run problems/001_two_sum [--stress]
+
+This is what pressing ▶ on a solution.py shows, and what ./leet test prints.
 """
 
 from __future__ import annotations
 
 import sys
+import time
+from dataclasses import dataclass
 from pathlib import Path
 
-from .judge import NotStarted, WrongAnswer, load_spec, run_case
+from .judge import NotStarted, WrongAnswer, describe, load_spec, run_case
 
+
+@dataclass
+class Result:
+    verdict: str              # Accepted, Wrong Answer, Time Limit Exceeded, Runtime Error, Not started
+    passed: int = 0
+    total: int = 0
+    held_back: int = 0        # stress cases not run
+    case: str = ""            # the first case that went wrong
+    details: str = ""
+    milliseconds: int = 0
+
+    @property
+    def accepted(self) -> bool:
+        return self.verdict == "Accepted"
+
+
+def judge_folder(folder: Path, stress: bool = False) -> Result:
+    """Runs the cases in order and stops at the first that does not pass, as LeetCode does."""
+    spec = load_spec(folder)
+    cases = [case for case in spec.cases if stress or not case.stress]
+    result = Result("Accepted", total=len(cases), held_back=len(spec.cases) - len(cases))
+    started = time.perf_counter()
+    for case in cases:
+        try:
+            run_case(spec, case, stress=stress)
+        except NotStarted:
+            return Result("Not started", total=len(cases), held_back=result.held_back)
+        except WrongAnswer as wrong:
+            result.verdict, result.case, result.details = wrong.verdict, case.name, str(wrong)
+            break
+        except Exception as crash:                         # your code raised: say what, and where in your file
+            where = _line_in(crash, folder)
+            error = f"  {type(crash).__name__}: {crash}" + (f"     line {where}" if where else "")
+            result.verdict, result.case = "Runtime Error", case.name
+            result.details = error + "\n" + describe(spec, case, input_label="Last input")
+            break
+        result.passed += 1
+    result.milliseconds = round((time.perf_counter() - started) * 1000)
+    return result
+
+
+def _line_in(crash: Exception, folder: Path):
+    trace, line = crash.__traceback__, None
+    while trace is not None:
+        if Path(trace.tb_frame.f_code.co_filename).parent == folder:
+            line = trace.tb_lineno
+        trace = trace.tb_next
+    return line
+
+
+# ---- printing
 
 def _paint(text: str, code: str) -> str:
     return f"\033[{code}m{text}\033[0m" if sys.stdout.isatty() else text
 
 
-def green(text: str) -> str: return _paint(text, "32")
-def red(text: str) -> str: return _paint(text, "31")
-def dim(text: str) -> str: return _paint(text, "2")
-def bold(text: str) -> str: return _paint(text, "1")
+def one_line(result: Result) -> str:
+    """"Accepted   14 / 14 testcases passed   3 ms", in green or red."""
+    if result.verdict == "Not started":
+        return _paint("Not started", "2") + "   the method still raises NotImplementedError"
+    colour = "1;32" if result.accepted else "1;31"
+    line = f"{_paint(result.verdict, colour)}   {result.passed} / {result.total} testcases passed"
+    return line + (_paint(f"   {result.milliseconds} ms", "2") if result.accepted else "")
 
 
-def judge_folder(folder: Path, stress: bool = False) -> dict:
-    """Prints as it goes and returns the counts: passed, failed, held back (stress), and whether it was started."""
-    spec = load_spec(folder)
-    counts = {"passed": 0, "failed": 0, "held_back": 0, "started": True, "timed_out": False}
-    title = folder.name.split("_", 1)[-1].replace("_", " ").title()
-    print(bold(f"\n{title}") + dim(f"   {len(spec.cases)} cases"))
-
-    for index, case in enumerate(spec.cases):
-        if case.stress and not stress:
-            counts["held_back"] += 1
-            continue
-        try:
-            run_case(spec, case, stress=stress)
-        except NotStarted:
-            counts["started"] = False
-            print(dim("  · not started: the method still raises NotImplementedError"))
-            return counts
-        except WrongAnswer as wrong:
-            counts["failed"] += 1
-            print(red(f"  ✗ {case.name}"))
-            print("\n".join(f"      {line}" for line in str(wrong).split("\n") if line.strip()))
-            if str(wrong).startswith("Time limit"):
-                counts["timed_out"] = True
-                left = sum(1 for later in spec.cases[index + 1:] if stress or not later.stress)
-                if left:
-                    print(dim(f"  · {left} later cases not run: they would only run out of time too"))
-                break
-        except Exception as crash:                         # your code raised: say where, in your file
-            counts["failed"] += 1
-            print(red(f"  ✗ {case.name}"))
-            print(f"      {_where(crash, folder)}{type(crash).__name__}: {crash}")
-        else:
-            counts["passed"] += 1
-            print(green(f"  ✓ {case.name}"))
-
-    ran = counts["passed"] + counts["failed"]
-    line = green(f"all {ran} passed") if not counts["failed"] else red(f"{counts['failed']} of {ran} failed")
-    if counts["held_back"]:
-        line += dim(f"   ·   {counts['held_back']} stress case held back (./leet test --stress)")
-    print(f"\n  {line}\n")
-    return counts
+def report(title: str, result: Result) -> str:
+    lines = ["", _paint(title, "1"), "", one_line(result)]
+    if result.details:
+        lines += ["", _paint(f"  {result.case}", "2"), result.details]
+    if result.accepted and result.held_back:
+        lines += ["", _paint(f"{result.held_back} stress case{'s' if result.held_back != 1 else ''} not run: ./leet test --stress", "2")]
+    return "\n".join(lines) + "\n"
 
 
-def _where(crash: Exception, folder: Path) -> str:
-    trace = crash.__traceback__
-    spot = None
-    while trace is not None:
-        if Path(trace.tb_frame.f_code.co_filename).parent == folder:
-            spot = trace
-        trace = trace.tb_next
-    return f"line {spot.tb_lineno}: " if spot else ""
+def title_of(folder: Path) -> str:
+    from .catalog import find
+    try:
+        return find(folder.name).title
+    except LookupError:
+        return folder.name
 
 
-def remember(folder: Path, counts: dict) -> None:
+def remember(folder: Path, result: Result) -> None:
     """So that ./leet list and ./leet next know how this problem stands."""
     import json
     from .catalog import PROBLEMS_DIR, ROOT, find
@@ -86,17 +109,22 @@ def remember(folder: Path, counts: dict) -> None:
         return
     path = ROOT / ".leet" / "results.json"
     results = json.loads(path.read_text()) if path.exists() else {}
-    results[label] = "not started" if not counts["started"] else "failed" if counts["failed"] else "passed"
+    results[label] = "not started" if result.verdict == "Not started" else "passed" if result.accepted else "failed"
     path.parent.mkdir(exist_ok=True)
     path.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n")
+
+
+def judge_and_report(folder: Path, stress: bool = False) -> Result:
+    result = judge_folder(folder, stress=stress)
+    print(report(title_of(folder), result))
+    remember(folder, result)
+    return result
 
 
 def main(argv: list[str]) -> int:
     folder = Path(argv[0]).resolve()
     folder = folder.parent if folder.is_file() else folder
-    counts = judge_folder(folder, stress="--stress" in argv)
-    remember(folder, counts)
-    return 1 if counts["failed"] else 0
+    return 0 if judge_and_report(folder, stress="--stress" in argv).verdict in ("Accepted", "Not started") else 1
 
 
 if __name__ == "__main__":

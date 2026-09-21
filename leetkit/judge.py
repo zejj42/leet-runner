@@ -42,7 +42,11 @@ class NotStarted(Exception):
 
 
 class WrongAnswer(AssertionError):
-    pass
+    """A case that did not pass. `verdict` is LeetCode's name for why: Wrong Answer, Time Limit Exceeded."""
+
+    def __init__(self, message: str, verdict: str = "Wrong Answer"):
+        super().__init__(message)
+        self.verdict = verdict
 
 
 @dataclass(repr=False)
@@ -177,17 +181,19 @@ def _show(value: Any, limit: int = 300) -> str:
     return text if len(text) <= limit else f"{text[:limit]}… ({len(text)} characters)"
 
 
-def _report(spec: Spec, case: Case, headline: str, got: Any = None, show_got: bool = False) -> str:
-    lines = [f"{headline}", ""]
+def describe(spec: Spec, case: Case, got: Any = None, show_got: bool = False, note: str = "",
+             input_label: str = "Input") -> str:
+    """The block LeetCode shows under a verdict: the input, your output, what was expected."""
     if case.ops is not None:
-        lines += [f"  ops      = {_show(case.ops)}", f"  args     = {_show(case.args)}"]
+        inputs = [f"ops = {_show(case.ops)}", f"args = {_show(case.args)}"]
     else:
-        width = max((len(p["name"]) for p in spec.params), default=0)
-        for param, value in zip(spec.params, case.args):
-            lines.append(f"  {param['name']:<{width}} = {_show(value)}")
-    lines += ["", f"  expected   {_show(case.expected)}"]
+        inputs = [f"{param['name']} = {_show(value)}" for param, value in zip(spec.params, case.args)]
+    lines = [f"  {input_label if index == 0 else '':<12}{text}" for index, text in enumerate(inputs)]
     if show_got:
-        lines.append(f"  got        {_show(got)}")
+        lines.append(f"  {'Output':<12}{_show(got)}")
+    lines.append(f"  {'Expected':<12}{_show(case.expected)}")
+    if note:
+        lines.append(f"  {'Note':<12}{note}")
     return "\n".join(lines)
 
 
@@ -204,16 +210,15 @@ def run_case(spec: Spec, case: Case, stress: bool = False) -> None:
     except NotImplementedError:
         raise NotStarted(spec.title) from None
     except TimeoutError:
-        raise WrongAnswer(_report(spec, case, f"Time limit exceeded: over {limit:g} seconds")) from None
+        raise WrongAnswer(describe(spec, case, note=f"stopped after {limit:g} seconds"), "Time Limit Exceeded") from None
 
     checker = spec.folder / "check.py"
     if checker.exists():
         verdict = _load_module(checker, f"check_{spec.folder.name}").check(arguments, result, case.expected)
         if verdict is not True:
-            reason = verdict if isinstance(verdict, str) else "Wrong answer"
-            raise WrongAnswer(_report(spec, case, reason, result, show_got=True))
+            raise WrongAnswer(describe(spec, case, result, show_got=True, note=verdict if isinstance(verdict, str) else ""))
     elif not _matches(result, case.expected, spec.compare):
-        raise WrongAnswer(_report(spec, case, "Wrong answer", result, show_got=True))
+        raise WrongAnswer(describe(spec, case, result, show_got=True))
 
 
 def _run_function(spec: Spec, case: Case, module) -> tuple[Any, dict]:

@@ -26,8 +26,8 @@ def problem_tests(test_file: str):
         except NotStarted:
             verdict = "not started"
         except WrongAnswer as wrong:
-            verdict = str(wrong)
-            if verdict.startswith("Time limit"):
+            verdict = f"{wrong.verdict}\n\n{wrong}"
+            if wrong.verdict == "Time Limit Exceeded":
                 timed_out.append(case.name)
         # Raised out here, not inside the handlers, so the report is the verdict alone and not a chain of exceptions.
         if verdict == "not started":

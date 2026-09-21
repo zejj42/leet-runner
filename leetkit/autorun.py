@@ -36,5 +36,5 @@ def install() -> None:
 def _judge(folder: Path) -> None:
     if getattr(sys, "last_value", None) is not None or getattr(sys, "last_exc", None) is not None:
         return                                 # the file itself failed to load; Python has already said why
-    from .run import judge_folder, remember
-    remember(folder, judge_folder(folder))
+    from .run import judge_and_report
+    judge_and_report(folder)
