@@ -269,7 +269,8 @@ def test_scaffolding_never_overwrites_what_you_may_have_written(tmp_path, monkey
     assert "__main__" not in solution and "raise NotImplementedError" in solution      # the hand-run block lives elsewhere
     assert "from solution import Solution" in (folder / "scratch.py").read_text()
     assert json.loads((folder / "cases.json").read_text())["cases"][0]["expected"] == [0, 1]
-    assert 'class="badge easy"' in (folder / "README.md").read_text()
+    readme = (folder / "README.md").read_text()
+    assert 'class="badge easy"' in readme and "Hint" not in readme and "Follow" not in readme
 
     with pytest.raises(FileExistsError):
         scaffolding.scaffold(two_sum)
@@ -277,12 +278,14 @@ def test_scaffolding_never_overwrites_what_you_may_have_written(tmp_path, monkey
     (folder / "solution.py").write_text("mine")
     (folder / "cases.json").write_text('{"mine": true}')
     (folder / "scratch.py").write_text("mine too")
-    (folder / "README.md").write_text("stale")
+    (folder / "README.md").write_text("reworded")
+    (folder / "test_solution.py").write_text("stale")
     scaffolding.scaffold(two_sum, force=True)
     assert (folder / "solution.py").read_text() == "mine"
     assert (folder / "cases.json").read_text() == '{"mine": true}'
     assert (folder / "scratch.py").read_text() == "mine too"
-    assert (folder / "README.md").read_text() != "stale"                                # only what comes from LeetCode is refreshed
+    assert (folder / "README.md").read_text() == "reworded"
+    assert (folder / "test_solution.py").read_text() != "stale"                         # only what comes from the kit is refreshed
 
 
 # ---- pressing ▶ on a solution.py

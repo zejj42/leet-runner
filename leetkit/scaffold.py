@@ -42,10 +42,11 @@ def scaffold(problem: Problem, force: bool = False) -> Path:
     meta = json.loads(question.get("metaData") or "{}")
     folder.mkdir(parents=True, exist_ok=True)
 
-    # Always refreshed: what comes from LeetCode and from the kit. Never overwritten: what you may have written in.
-    (folder / "README.md").write_text(_readme(problem, question))
+    # Always refreshed: what comes from the kit. Never overwritten: what has been written in by hand, and that
+    # includes the README, whose statement gets reworded so that it is this repo's own.
     (folder / "test_solution.py").write_text(_TEST_FILE)
-    for name, content in (("solution.py", _stub(problem, question, meta)),
+    for name, content in (("README.md", _readme(problem, question)),
+                          ("solution.py", _stub(problem, question, meta)),
                           ("cases.json", format_cases(_cases(question, meta))),
                           ("scratch.py", _scratch(question, meta))):
         if content and not (folder / name).exists():
@@ -64,13 +65,9 @@ def _readme(problem: Problem, question: dict) -> str:
     if question.get("isPaidOnly") or not question.get("content"):
         lines += ["This one is for LeetCode subscribers, so its statement could not be fetched. Paste it here.", ""]
     else:
-        statement, follow_up = split_follow_up(to_markdown(question["content"]))
+        statement, _follow_up = split_follow_up(to_markdown(question["content"]))   # the follow-up names the target
         lines += [statement, ""]
-        if follow_up:
-            lines += ["<details><summary>Follow-up</summary>", "", follow_up, "", "</details>", ""]
-    for index, hint in enumerate(question.get("hints") or [], start=1):
-        lines += [f"<details><summary>Hint {index}</summary>", "", to_markdown(hint), "", "</details>", ""]
-    return "\n".join(lines)
+    return "\n".join(lines)                                     # LeetCode's hints are left out too
 
 
 # ---- cases.json
