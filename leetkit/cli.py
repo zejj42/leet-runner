@@ -129,9 +129,10 @@ def _list(args) -> int:
     return 0
 
 
-# 正 taken apart, in the order its five strokes are written: 一 丨 一 丨 一. The Linux text console has no Chinese
-# characters at all, so there, and wherever LEET_TALLY=plain says so, the strokes are drawn with line characters.
-_ZHENG = {"cjk": ("一丨一丨一", "・"), "plain": ("─│─│─", "·")}
+# 正 as it is written, a stroke at a time: one solve shows 一, two 丅, then 下, 止 and the whole 正, which stays from five
+# solves on. (止 is the nearest real character to the four-stroke stage.) The Linux text console has no Chinese
+# characters at all, so there, and wherever LEET_TALLY=plain says so, the number of solves is shown instead.
+_ZHENG = {"cjk": ["　", "一", "丅", "下", "止", "正"], "plain": ["  ", "1 ", "2 ", "3 ", "4 ", "5 "]}
 
 
 def _stroke_style() -> str:
@@ -143,13 +144,9 @@ def _stroke_style() -> str:
 
 
 def _strokes(solved: int, terminal: bool) -> str:
-    """One stroke of 正 per solve, the full five at most: lit strokes green, the others faint. Without colours, a dot
-    stands for a stroke not yet earned."""
-    strokes, dot = _ZHENG[_stroke_style()]
-    lit = min(solved, len(strokes))
-    if terminal:
-        return f"\033[1;32m{strokes[:lit]}\033[0m\033[2m{strokes[lit:]}\033[0m"
-    return strokes[:lit] + dot * (len(strokes) - lit)
+    stages = _ZHENG[_stroke_style()]
+    mark = stages[min(solved, len(stages) - 1)]
+    return f"\033[1;32m{mark}\033[0m" if terminal and solved else mark
 
 
 def _topic(problem: Problem) -> str:

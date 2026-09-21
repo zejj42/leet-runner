@@ -13,7 +13,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
 
 ## Usage
 
-    leet list               every problem in the repo: its solves as the strokes of 正 (一丨一丨一), difficulty, category, "extra" if outside the 169 with less (space: next page, q: quit)
+    leet list               every problem in the repo: its solves as 正 growing a stroke per solve (一 丅 下 止 正), difficulty, category, "extra" if outside the 169 with less (space: next page, q: quit)
     leet read <problem>     show the problem's statement
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet check <problem>     judge problems/<problem>/solution.py
@@ -63,10 +63,10 @@ failing one, or, when everything passed, the first.
 
 Exit codes: `0` Accepted or Not started, `1` any other verdict, `2` unknown problem or bad usage.
 
-Solves are kept in `progress.json` (git-ignored). `leet list` draws one stroke of 正 per solve, five at most. An
+Solves are kept in `progress.json` (git-ignored). `leet list` writes 正 a stroke per solve: 一, 丅, 下, 止, then 正, which stays. An
 Accepted counts as a new solve when it is the first, the first since `leet reset`, or the first on a new day with
 different code; checking the same solution again adds nothing. On the Linux text console, which has no Chinese
-characters, the strokes are drawn as `─│─│─`; `LEET_TALLY=plain` or `LEET_TALLY=cjk` forces either.
+characters, the number of solves is shown instead; `LEET_TALLY=plain` or `LEET_TALLY=cjk` forces either.
 
 Every invocation is appended to `journal.jsonl` (git-ignored), one JSON object per line:
 
