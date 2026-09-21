@@ -28,6 +28,9 @@ def install() -> None:
             return
         folder = script.resolve().parent
         if (folder / "cases.json").exists():
+            if sys.stdout.isatty():             # wipe the long command ▶ typed, scrollback too: only the verdict stays
+                sys.stdout.write("\033[H\033[2J\033[3J")
+                sys.stdout.flush()
             atexit.register(_judge, folder)
     except Exception:
         pass                                   # never get in the way of Python starting
