@@ -24,5 +24,11 @@
   "markdown.styles": [
     ".vscode/markdown.css"
   ],
-  "markdown.preview.breaks": false
+  "markdown.preview.breaks": false,
+  "code-runner.executorMap": {
+    "python": "\"$workspaceRoot/.venv/bin/python\" -u"
+  },
+  "code-runner.runInTerminal": true,
+  "code-runner.clearPreviousOutput": true,
+  "code-runner.saveFileBeforeRun": true
 }
