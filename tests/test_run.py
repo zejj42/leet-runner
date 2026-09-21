@@ -5,8 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-
-from helpers import problem, ADD, _run_as_script
+from helpers import ADD, problem, _run_as_script
 
 
 def test_judging_stops_at_the_first_case_that_fails_and_counts_what_passed_before_it(tmp_path):

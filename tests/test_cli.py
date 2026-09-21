@@ -9,7 +9,7 @@ import pytest
 from leetkit import scaffold as scaffolding
 from leetkit.catalog import all_problems, find
 
-from helpers import _git, ADD, problem, QUESTION
+from helpers import ADD, _git, problem, QUESTION
 
 
 def test_the_command_takes_a_number_a_slug_or_title_words_and_nothing_else(capsys):
