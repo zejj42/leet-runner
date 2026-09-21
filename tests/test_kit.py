@@ -492,7 +492,7 @@ def test_update_brings_new_problems_and_leaves_what_you_wrote_alone(tmp_path, mo
     monkeypatch.setattr(cli, "_setup_again", lambda: again.append(True) or 0)
     assert cli.main(["update"]) == 0
     said = capsys.readouterr().out
-    assert "Updated  0.0.1 → 0.0.2" in said and "· two" in said and "· 003_merge_two_sorted_lists" in said and again == [True]
+    assert "Updated  0.0.1 → 0.0.2" in said and "· two" in said and "· Merge Two Sorted Lists     leet read merge-two-sorted-lists" in said and again == [True]
     assert (clone / "problems" / "003_merge_two_sorted_lists" / "cases.json").exists()
     assert (clone / "problems" / "001_two_sum" / "solution.py").read_text() == "my code"
     assert '"mine"' in (clone / "problems" / "001_two_sum" / "cases.json").read_text()

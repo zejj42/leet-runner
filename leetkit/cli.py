@@ -172,9 +172,10 @@ def _update(args) -> int:
     print(f"Updated  {version_was} → {version(ROOT)}\n\nWhat changed:")
     for change in changes:
         print(f"  · {change}")
-    print("\nNew problems:" + ("" if new else "  none"))
-    for name in new:
-        print(f"  · {name}")
+    if new:                                                 # "problems" alone would read as trouble
+        print("\nLeetCode problems added to the set:")
+        for name in new:
+            print(f"  · {find(name).title}     leet read {find(name).slug}")
     return _setup_again()
 
 
