@@ -463,3 +463,49 @@ def test_leet_code_says_so_when_there_is_no_editor(monkeypatch, capsys):
     from leetkit import cli
     monkeypatch.setattr(cli.shutil, "which", lambda name: None)
     assert cli.main(["code", "two-sum"]) == 2 and "Neither nvim nor vim" in capsys.readouterr().err
+
+
+# ---- leet update
+
+def _git(folder, *command):
+    subprocess.run(["git", "-C", str(folder), "-c", "user.name=t", "-c", "user.email=t@t", *command], check=True, capture_output=True)
+
+
+def test_update_brings_new_problems_and_leaves_what_you_wrote_alone(tmp_path, monkeypatch, capsys):
+    from leetkit import cli
+    origin, clone = tmp_path / "origin", tmp_path / "clone"
+    (origin / "problems" / "001_two_sum").mkdir(parents=True)
+    (origin / ".gitignore").write_text("problems/*/solution.py\n")
+    (origin / "problems" / "001_two_sum" / "cases.json").write_text('{\n  "cases": [\n    1\n  ]\n}\n')
+    _git(origin, "init", "-q", "-b", "main"); _git(origin, "add", "-A"); _git(origin, "commit", "-qm", "one")
+    subprocess.run(["git", "clone", "-q", str(origin), str(clone)], check=True)
+
+    (clone / "problems" / "001_two_sum" / "solution.py").write_text("my code")                       # not in git at all
+    (clone / "problems" / "001_two_sum" / "cases.json").write_text('{\n  "cases": [\n    1,\n    "mine"\n  ]\n}\n')
+    (origin / "problems" / "003_merge_two_sorted_lists").mkdir()
+    (origin / "problems" / "003_merge_two_sorted_lists" / "cases.json").write_text("{}")
+    _git(origin, "add", "-A"); _git(origin, "commit", "-qm", "two")
+
+    monkeypatch.setattr(cli, "ROOT", clone)
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", clone / "problems")
+    again = []
+    monkeypatch.setattr(cli, "_setup_again", lambda: again.append(True) or 0)
+    assert cli.main(["update"]) == 0
+    assert "1 new problem" in capsys.readouterr().out and again == [True]
+    assert (clone / "problems" / "003_merge_two_sorted_lists" / "cases.json").exists()
+    assert (clone / "problems" / "001_two_sum" / "solution.py").read_text() == "my code"
+    assert '"mine"' in (clone / "problems" / "001_two_sum" / "cases.json").read_text()
+
+    assert cli.main(["update"]) == 0 and "Already up to date" in capsys.readouterr().out and again == [True]
+
+
+def test_a_problem_without_a_solution_file_gets_its_empty_stub(tmp_path, monkeypatch):
+    from leetkit import cli
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    two_sum = find("two-sum")
+    two_sum.folder.mkdir()
+    assert cli._in_the_repo(["two-sum"]).slug == "two-sum"
+    assert (two_sum.folder / "solution.py").read_text() == two_sum.stub.read_text()
+    (two_sum.folder / "solution.py").write_text("mine")
+    cli.lay_out_solutions()
+    assert (two_sum.folder / "solution.py").read_text() == "mine"

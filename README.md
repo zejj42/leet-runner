@@ -18,6 +18,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
     leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
     leet open <problem>     open the statement and solution.py in VS Code
     leet setup              create or repair .venv, the leet link and the VS Code extension
+    leet update             git pull the newest problems and kit, then setup again
 
 `<problem>` is any of:
 
@@ -62,7 +63,7 @@ Every invocation is appended to `journal.jsonl` (git-ignored), one JSON object p
 
     problems/001_two_sum/
       README.md       statement
-      solution.py     your code
+      solution.py     your code; not tracked by git, created from leetkit/stubs/
       cases.json      test cases
       large_*.json    data of cases too big to keep inline
 

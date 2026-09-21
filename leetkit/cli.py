@@ -1,4 +1,5 @@
-"""leet: write a problem in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up."""
+"""leet: write a problem in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up,
+update it."""
 
 from __future__ import annotations
 
@@ -9,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from .catalog import ROOT, Problem, find
+from .catalog import ROOT, Problem, all_problems, find
 
 _PROBLEM = "its number on the list (1), its LeetCode slug (two-sum), or words from its title"
 
@@ -35,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run(argv: list[str], facts: dict) -> int:
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{code,test,open,reset,setup}")
+    commands = parser.add_subparsers(dest="command", required=True, metavar="{code,test,open,reset,setup,update}")
     commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
@@ -44,10 +45,12 @@ def _run(argv: list[str], facts: dict) -> int:
     reset.add_argument("-y", "--yes", action="store_true", help="do not ask first")
     commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
 
+    commands.add_parser("update", help="get the newest problems and kit from GitHub; your solutions are left alone")
+
     args = parser.parse_args(argv)
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
-        return {"code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup}[args.command](args)
+        return {"code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup, "update": _update}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
         facts["error"] = str(problem)
@@ -77,6 +80,7 @@ def _setup(args) -> int:
     if str(link.parent) not in os.environ.get("PATH", "").split(os.pathsep):
         print(f"The leet command is now in {link.parent}, a folder your shell does not search for commands yet (it is\n"
               "not on your PATH). On Ubuntu, logging out and back in adds it. Until then, type ./leet from this folder.\n")
+    lay_out_solutions()
     from .colours import install
     install()                                               # only if VS Code is here; without it there is nothing to colour
     print("Ready:  leet code two-sum   then   leet test two-sum")
@@ -133,8 +137,53 @@ def _reset(args) -> int:
     return 0
 
 
+def _update(args) -> int:
+    """There is nothing to build: the kit runs from its source. Updating is a git pull, then setup once more, run
+    by the new code, for whatever that setup has learnt to do. Solutions are not in git, so a pull cannot touch them;
+    a cases.json you added cases to is set aside and put back by --autostash."""
+    if not (ROOT / ".git").exists():
+        raise LookupError("This copy was not made with git clone, so it cannot update itself.")
+    had = _folders()
+    was = _commit()
+    if subprocess.call(["git", "-C", str(ROOT), "pull", "--ff-only", "--autostash", "--quiet"]) != 0:
+        print("\nNot updated: git's message, above, says why.")
+        return 1
+    args.facts.update(was=was, now=_commit())
+    if _commit() == was:
+        print("Already up to date.")
+        return 0
+    new = sorted(_folders() - had)
+    args.facts["new_problems"] = new
+    print(f"Updated.  {len(new)} new problem{'' if len(new) == 1 else 's'}" + (":" if new else "."))
+    for name in new:
+        print(f"  {name}")
+    return _setup_again()
+
+
+def _setup_again() -> int:
+    return subprocess.call([str(ROOT / "leet"), "setup"], stdout=subprocess.DEVNULL)     # a new process: the new code
+
+
+def _commit() -> str:
+    return subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], text=True).strip()
+
+
+def _folders() -> set[str]:
+    return {problem.folder.name for problem in all_problems() if problem.folder.exists()}
+
+
+def lay_out_solutions() -> None:
+    """A solution.py is yours, so git does not track it. Where a problem has none yet, it gets its empty stub."""
+    for problem in all_problems():
+        solution = problem.folder / "solution.py"
+        if problem.folder.exists() and problem.stub.exists() and not solution.exists():
+            solution.write_text(problem.stub.read_text())
+
+
 def _in_the_repo(words: list[str]) -> Problem:
     problem = find(" ".join(words))                          # leet test two sum, without quotes, works too
     if not problem.folder.exists():
         raise LookupError(f"{problem.title} is on the list, but its folder is not in the repo yet.")
+    if not (problem.folder / "solution.py").exists() and problem.stub.exists():
+        (problem.folder / "solution.py").write_text(problem.stub.read_text())
     return problem
