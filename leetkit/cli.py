@@ -108,6 +108,8 @@ def _list(args) -> int:
     terminal = sys.stdout.isatty()
     problems = [problem for problem in all_problems() if problem.folder.exists()]
     width = max((len(problem.title) for problem in problems), default=0)
+    topics = {problem.slug: _topic(problem) for problem in problems}
+    topic_width = max((len(topic) for topic in topics.values()), default=0)
     from .progress import solved
     done = solved()
     lines = []
@@ -115,15 +117,23 @@ def _list(args) -> int:
         level = f"{problem.difficulty:<6}"
         mark = "✓" if problem.slug in done else " "
         extra = f"{'extra' if problem.number is None else '':<5}"       # not one of the 169 on the chart
+        topic = f"{topics[problem.slug]:<{topic_width}}"
         if terminal:
             level = f"\033[{colours.get(problem.difficulty, '0')}m{level}\033[0m"
             mark = f"\033[1;32m{mark}\033[0m"
             extra = f"\033[1;35m{extra}\033[0m"
-        lines.append(f"{mark} {problem.label:<6}  {problem.title:<{width}}  {level}  {extra}".rstrip())
+            topic = f"\033[36m{topic}\033[0m"
+        lines.append(f"{mark} {problem.label:<6}  {problem.title:<{width}}  {level}  {topic}  {extra}".rstrip())
     count = sum(problem.slug in done for problem in problems)
     lines.append(f"\n{count} of {len(problems)} solved.  leet read <number or title>")
     _show("\n".join(lines))
     return 0
+
+
+def _topic(problem: Problem) -> str:
+    """The list writes its topics two ways, linkedList and Two Pointers. Here they all read alike: linked list."""
+    import re
+    return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", problem.topic).lower()
 
 
 def _show(text: str) -> None:

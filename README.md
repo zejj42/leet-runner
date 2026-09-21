@@ -13,7 +13,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
 
 ## Usage
 
-    leet list               every problem in the repo: ✓ on the solved ones, "extra" on those outside the 169; a long list is paged with less (space: next page, q: quit)
+    leet list               every problem in the repo: difficulty, category, ✓ when solved, "extra" when outside the 169; paged if long with less (space: next page, q: quit)
     leet read <problem>     show the problem's statement
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet check <problem>     judge problems/<problem>/solution.py
