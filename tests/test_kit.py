@@ -239,4 +239,4 @@ def test_problems_can_all_name_their_test_file_the_same(tmp_path):
     run = subprocess.run([sys.executable, "-m", "pytest", str(tmp_path), "-c", str(root / "pyproject.toml"), "-q"],
                          capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(root)})
     assert run.returncode == 0, run.stdout + run.stderr
-    assert "2 passed" in run.stdout
+    assert run.stdout.strip().startswith("..")           # quiet mode: one dot per passing case, and there are two
