@@ -123,4 +123,4 @@ VS Code, optional. The workspace recommends the Python and Code Runner extension
       scaffold.py        builds a problem folder from LeetCode: python -m leetkit.scaffold <slug>
       statement.py       LeetCode HTML to Markdown
       stubs/             the empty solution.py of every problem, used by leet reset
-    tests/               kit tests: ./leet setup --dev, then .venv/bin/python -m pytest
+    tests/               kit tests: python3 -m pytest (pytest is their only dependency)
