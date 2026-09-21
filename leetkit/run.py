@@ -133,7 +133,9 @@ def _note_solved(folder: Path) -> None:
     if folder.resolve().parent != catalog.PROBLEMS_DIR.resolve():
         return
     try:
-        mark_solved(catalog.find(folder.name).slug)
+        import hashlib
+        code = hashlib.sha1((folder / "solution.py").read_bytes()).hexdigest()
+        mark_solved(catalog.find(folder.name).slug, code)
     except LookupError:
         pass
 

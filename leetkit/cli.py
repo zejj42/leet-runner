@@ -110,24 +110,35 @@ def _list(args) -> int:
     width = max((len(problem.title) for problem in problems), default=0)
     topics = {problem.slug: _topic(problem) for problem in problems}
     topic_width = max((len(topic) for topic in topics.values()), default=0)
-    from .progress import solved
-    done = solved()
+    from .progress import solves
+    done = solves()
     lines = []
     for problem in problems:
         level = f"{problem.difficulty:<6}"
-        mark = "✓" if problem.slug in done else " "
+        mark = _strokes(done.get(problem.slug, 0), terminal)
         extra = f"{'extra' if problem.number is None else '':<5}"       # not one of the 169 on the chart
         topic = f"{topics[problem.slug]:<{topic_width}}"
         if terminal:
             level = f"\033[{colours.get(problem.difficulty, '0')}m{level}\033[0m"
-            mark = f"\033[1;32m{mark}\033[0m"
             extra = f"\033[1;35m{extra}\033[0m"
             topic = f"\033[36m{topic}\033[0m"
-        lines.append(f"{mark} {problem.label:<6}  {problem.title:<{width}}  {level}  {topic}  {extra}".rstrip())
+        lines.append(f"{mark}  {problem.label:<6}  {problem.title:<{width}}  {level}  {topic}  {extra}".rstrip())
     count = sum(problem.slug in done for problem in problems)
     lines.append(f"\n{count} of {len(problems)} solved.  leet read <number or title>")
     _show("\n".join(lines))
     return 0
+
+
+_ZHENG = "─│─│─"          # 正 taken apart, in the order its five strokes are written
+
+
+def _strokes(solved: int, terminal: bool) -> str:
+    """One stroke of 正 per solve, the full five at most: lit strokes green, the others faint. Without colours, a dot
+    stands for a stroke not yet earned."""
+    lit = min(solved, len(_ZHENG))
+    if terminal:
+        return f"\033[1;32m{_ZHENG[:lit]}\033[0m\033[2m{_ZHENG[lit:]}\033[0m"
+    return _ZHENG[:lit] + "·" * (len(_ZHENG) - lit)
 
 
 def _topic(problem: Problem) -> str:
@@ -192,6 +203,8 @@ def _reset(args) -> int:
             print("Left as it is.")
             return 1
     solution.write_text(problem.stub.read_text())
+    from . import progress
+    progress.note_reset(problem.slug)                       # its strokes stay; the next Accepted adds one
     args.facts["erased"] = True
     print(f"{problem.title} is back to its starting state.")
     return 0
@@ -202,14 +215,14 @@ def _startover(args) -> int:
     written = [problem for problem in all_problems()
                if problem.stub.exists() and (problem.folder / "solution.py").exists()
                and (problem.folder / "solution.py").read_text() != problem.stub.read_text()]
-    marks = len(progress.solved())
+    marks = len(progress.solves())
     args.facts.update(erased=0, forgotten=0)
     if not written and not marks:
         print("Nothing to start over from: no code written, nothing marked solved.")
         return 0
     if not args.yes:
         print(f"This erases your code in {len(written)} problem{'' if len(written) == 1 else 's'}"
-              f" and forgets {marks} solved mark{'' if marks == 1 else 's'}. The cases and the journal stay.")
+              f" and forgets the strokes of {marks} problem{'' if marks == 1 else 's'}. The cases and the journal stay.")
         for problem in written:
             print(f"  · {problem.title}")
         if input("Start over? [y/N] ").strip().lower() not in ("y", "yes"):

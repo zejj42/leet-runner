@@ -13,7 +13,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
 
 ## Usage
 
-    leet list               every problem in the repo: difficulty, category, ✓ when solved, "extra" when outside the 169; paged if long with less (space: next page, q: quit)
+    leet list               every problem in the repo: its solves as strokes of 正 (─│─│─), difficulty, category, "extra" if outside the 169 with less (space: next page, q: quit)
     leet read <problem>     show the problem's statement
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet check <problem>     judge problems/<problem>/solution.py
@@ -63,7 +63,9 @@ failing one, or, when everything passed, the first.
 
 Exit codes: `0` Accepted or Not started, `1` any other verdict, `2` unknown problem or bad usage.
 
-A problem is marked solved the first time it is Accepted, in `progress.json` (git-ignored), and stays so.
+Solves are kept in `progress.json` (git-ignored). `leet list` draws one stroke of 正 per solve, five at most. An
+Accepted counts as a new solve when it is the first, the first since `leet reset`, or the first on a new day with
+different code; checking the same solution again adds nothing.
 
 Every invocation is appended to `journal.jsonl` (git-ignored), one JSON object per line:
 

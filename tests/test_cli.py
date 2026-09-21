@@ -47,10 +47,10 @@ def test_list_names_every_problem_in_the_repo_and_pages_only_a_tall_list_on_a_te
     from leetkit import cli
     assert cli.main(["list"]) == 0
     said = capsys.readouterr().out
-    assert "  001     Two Sum" in said and "0 of " in said and "two-sum" not in said and "142     Reorder List" in said and "medium" in said
+    assert "·····  001     Two Sum" in said and "0 of " in said and "two-sum" not in said and "142     Reorder List" in said and "medium" in said
     assert "easy    linked list" in said and "binary search" in said and "linkedList" not in said     # the category, spelt plainly
     extras = [row for row in said.split("\n") if row.endswith(" extra")]
-    assert extras and all(row.lstrip("✓ ").startswith("lc") for row in extras)                  # off the chart: labelled
+    assert extras and all(row.lstrip("─│· ").startswith("lc") for row in extras)                  # off the chart: labelled
     assert said.index("001") < said.index("003") < said.index("142") < said.index("lc0") and "solved.  leet read <number or title>" in said
 
     paged = []
@@ -161,12 +161,12 @@ def test_startover_empties_every_solution_and_forgets_what_was_solved_after_a_ye
     monkeypatch.setattr("builtins.input", lambda prompt: "")
     assert cli.main(["startover"]) == 1                                     # Enter alone means no
     assert "1 problem" in capsys.readouterr().out and (written.folder / "solution.py").read_text() == "my code"
-    assert list(progress.solved()) == ["two-sum"]
+    assert progress.solves() == {"two-sum": 1}
 
     monkeypatch.setattr("builtins.input", lambda prompt: "y")
     assert cli.main(["startover"]) == 0
     assert (written.folder / "solution.py").read_text() == written.stub.read_text()
-    assert (written.folder / "cases.json").read_text() == "my cases" and progress.solved() == {}
+    assert (written.folder / "cases.json").read_text() == "my cases" and progress.solves() == {}
 
     monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("nothing to erase, nothing to ask"))
     assert cli.main(["startover"]) == 0 and "Nothing to start over" in capsys.readouterr().out
