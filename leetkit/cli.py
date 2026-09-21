@@ -35,7 +35,9 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _run(argv: list[str], facts: dict) -> int:
+    from .version import version
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
+    parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
     commands = parser.add_subparsers(dest="command", required=True, metavar="{code,test,open,reset,setup,update}")
     commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
@@ -146,21 +148,24 @@ def _update(args) -> int:
     a cases.json you added cases to is set aside and put back by --autostash."""
     if not (ROOT / ".git").exists():
         raise LookupError("This copy was not made with git clone, so it cannot update itself.")
-    had = _folders()
-    was = _commit()
+    from .version import version
+    had, was, version_was = _folders(), _commit(), version(ROOT)
     pull = subprocess.run(["git", "-C", str(ROOT), "pull", "--ff-only", "--autostash"], capture_output=True, text=True)
     if pull.returncode != 0:
         print(f"Not updated. git says:\n\n{(pull.stderr or pull.stdout).strip()}")
         return 1
-    args.facts.update(was=was, now=_commit())
     if _commit() == was:
-        print("Already up to date.")
+        print(f"Already up to date, at {version_was}.")
         return 0
     new = sorted(_folders() - had)
-    args.facts["new_problems"] = new
-    print(f"Updated.  {len(new)} new problem{'' if len(new) == 1 else 's'}" + (":" if new else "."))
+    changes = subprocess.check_output(["git", "-C", str(ROOT), "log", "--reverse", "--format=%s", f"{was}..HEAD"], text=True).splitlines()
+    args.facts.update(was=version_was, now=version(ROOT), new_problems=new, changes=changes)
+    print(f"Updated  {version_was} → {version(ROOT)}\n\nWhat changed:")
+    for change in changes:
+        print(f"  · {change}")
+    print("\nNew problems:" + ("" if new else "  none"))
     for name in new:
-        print(f"  {name}")
+        print(f"  · {name}")
     return _setup_again()
 
 

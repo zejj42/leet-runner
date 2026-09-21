@@ -18,7 +18,8 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
     leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
     leet open <problem>     open the statement and solution.py in VS Code (needs a desktop session)
     leet setup              create or repair .venv, the leet link and the VS Code extension
-    leet update             git pull the newest problems and kit, then setup again
+    leet update             git pull the newest problems and kit, then setup again; lists what changed
+    leet --version          major.minor from pyproject.toml, then the commit count
 
 `<problem>` is any of:
 
@@ -119,6 +120,7 @@ VS Code, optional. The workspace recommends the Python and Code Runner extension
       catalog.py         problem lookup
       structures.py      ListNode, TreeNode
       journal.py         journal.jsonl
+      version.py         leet --version
       autorun.py         ▶ support
       colours.py         installs vscode/verdict-colours
       scaffold.py        builds a problem folder from LeetCode: python -m leetkit.scaffold <slug>
