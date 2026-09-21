@@ -1,72 +1,123 @@
 # leet-runner
 
-The LeetTracker list (the 169 chart problems, then the off-list ones), to solve in VS Code and judge locally.
+A local judge for LeetCode problems, driven from the command line. Python 3.10+, macOS or Linux.
 
-## Setup, once
+## Install
 
+    git clone https://github.com/zejj42/leet-runner.git
+    cd leet-runner
     ./leet setup
 
-It creates `.venv`, links the command into `~/.local/bin` (from then on it is `leet`, from any folder), and
-installs the small VS Code extension that colours verdicts. Then open the folder in VS Code and accept the
-recommended extensions: Python, and Code Runner for its ▶.
+`setup` creates `.venv` and links `leet` into `~/.local/bin`. After it, `leet` runs from any directory.
 
-## Day to day
+## Usage
 
-Open a problem's `solution.py`, write your code, and press **▶**. The verdict shows in the Output panel:
+    leet test <problem>     judge problems/<problem>/solution.py
+    leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
+    leet open <problem>     open the statement and solution.py in VS Code
+    leet setup              create or repair .venv, the leet link and the VS Code extension
 
+`<problem>` is any of:
+
+| Form | Example |
+|---|---|
+| LeetCode slug | `two-sum` |
+| number on the list | `1` |
+| words of the title | `two sum` |
+
+Write the solution in `problems/<folder>/solution.py` with any editor, then:
+
+    $ leet test two-sum
     Two Sum   Accepted   15 / 15 testcases passed   4 ms
 
-When it is not Accepted, the first case that went wrong follows, with its input, your output and what was
-expected. F5 judges the same file, stopping at your breakpoints.
+    $ leet test two-sum
+    Two Sum   Wrong Answer   1 / 15 testcases passed
 
-    leet open two-sum    open its statement and solution in VS Code
-    leet test two-sum    the same judging, from the terminal
-    leet reset two-sum   erase your code: solution.py goes back to its empty starting state (it asks first)
+      example 2
+      Input       nums = [3, 2, 4]
+                  target = 6
+      Output      [0, 1]
+      Expected    [1, 2]
 
-A problem is named by its LeetCode slug (`two-sum`, the end of its address), its number on the list (`1`),
-or words from its title (`two sum`). Every `leet` command is written to `journal.jsonl`, one line each,
-with the verdict when it was a test.
+Judging stops at the first failing case.
 
-## A problem's folder
+| Verdict | Meaning |
+|---|---|
+| `Accepted` | every case passed |
+| `Wrong Answer` | the output differs from the expected one |
+| `Runtime Error` | the solution raised; the exception and its line are shown |
+| `Time Limit Exceeded` | a case ran longer than 2 s (10 s for a large case) |
+| `Not started` | the method still raises `NotImplementedError` |
+
+Exit codes: `0` Accepted or Not started, `1` any other verdict, `2` unknown problem or bad usage.
+
+Every invocation is appended to `journal.jsonl` (git-ignored), one JSON object per line:
+
+    {"at": "2026-09-21T17:30:59", "command": "test", "args": ["two-sum"], "exit": 0, "problem": "two-sum", "verdict": "Accepted", "passed": 15, "total": 15, "ms": 3}
+
+## Problem folder
 
     problems/001_two_sum/
-      README.md          the statement, in this repo's words; no follow-up, no hints. ⇧⌘V previews it, in colour.
-      solution.py        yours
-      cases.json         the test cases, one per line. Add your own.
-      large_*.json       the data of a case too big to read
+      README.md       statement
+      solution.py     your code
+      cases.json      test cases
+      large_*.json    data of cases too big to keep inline
 
-A solution that still raises `NotImplementedError` is "Not started", not wrong.
+## cases.json
 
-## Adding cases
+    {
+      "function": "twoSum",
+      "params": [{"name": "nums", "type": "integer[]"}, {"name": "target", "type": "integer"}],
+      "returns": "integer[]",
+      "compare": "unordered",
+      "cases": [
+        {"name": "example 1", "args": [[2, 7, 11, 15], 9], "expected": [0, 1]}
+      ]
+    }
 
-One line in `cases.json`:
+Add a case by adding a line to `cases`.
 
-    {"name": "what it checks", "args": [[1, 2, 3], 4], "expected": [0, 2]}
+| Key | Values |
+|---|---|
+| `compare` | `exact` (default), `unordered`, `unordered_nested`, `float`, `any_of` (`expected` lists every right answer) |
+| `time_limit` | seconds per case, default 2 |
+| `returns: "void"` + `output_param: 0` | judge the argument the method changed in place |
+| param type `ListNode`, `TreeNode` | built from LeetCode's notation: `[1, 2, 3]`, `[1, null, 2]` |
+| param type `cycle position` | not passed to the method; links the tail of the preceding list to that index (`-1`: none) |
+| case `"large": true` | five times the time limit |
+| case `"file": "large_input.json"` | `args` and `expected` are read from that file |
+| `"class": "LRUCache"` instead of `function` | design problems; cases carry `ops`, `args`, `expected` |
 
-`"compare"` decides how an answer is judged: `exact`, `unordered` (any order), `unordered_nested`
-(any order inside and out), `float`, or `any_of` (expected lists every right answer). `"large": true` gives
-a case five times the time limit, and `"file": "large_input.json"` keeps its data out of the way.
-Linked lists and trees are written LeetCode's way, `[1, 2, 3]` and `[1, null, 2]`. If a problem has many
-right answers, a `check.py` beside it with `check(args, result, expected)` decides. `leetkit/judge.py` has the details.
+A `check.py` next to `cases.json` overrides `compare`: `check(args: dict, result, expected) -> bool | str`
+(a string is the reason the answer is wrong).
 
-## The kit
+## IDE support
 
-    leet                 the command: a few lines of bash that start leetkit with the project's Python
-    problems.json        the list, exported from LeetTracker
+VS Code, optional. The workspace recommends the Python and Code Runner extensions.
+
+- ▶ on a `solution.py` judges it; the verdict appears, coloured, in the Output panel.
+- F5 judges it under the debugger.
+- ⇧⌘V previews a statement, styled by `.vscode/markdown.css`.
+
+▶ works because `setup` writes a `.pth` file into `.venv`: when that Python runs a `solution.py` that has a
+`cases.json` beside it, `leetkit/autorun.py` judges it on exit. Verdict colours come from
+`vscode/verdict-colours`, a grammar-only extension that `setup` installs.
+
+## Layout
+
+    leet                 launcher (bash)
+    problems.json        the problem list
+    problems/            one folder per problem
     leetkit/
-      cli.py             leet test, open, reset, setup
-      judge.py           runs one case: builds the arguments, calls your method, compares
-      run.py             judges a folder and words the verdict
-      autorun.py         what makes ▶ on a solution.py judge it
-      structures.py      ListNode, TreeNode, and LeetCode's list notation for them
-      catalog.py         finds a problem by number, slug or title
+      cli.py             the leet commands
+      judge.py           runs one case
+      run.py             judges a folder, formats the verdict
+      catalog.py         problem lookup
+      structures.py      ListNode, TreeNode
       journal.py         journal.jsonl
-      scaffold.py        makes a problem's folder from LeetCode: python -m leetkit.scaffold two-sum
-      statement.py       LeetCode's HTML statement as Markdown
-      colours.py         packs and installs vscode/verdict-colours
-      stubs/             every solution.py as it started, for leet reset
-    tests/               the kit's own tests: .venv/bin/python -m pytest
-
-How ▶ works, since a `solution.py` holds nothing but your class: `leet setup` adds one line to the virtual
-environment that notices when the file being run is a `solution.py` with a `cases.json` beside it, and judges
-it once it has loaded. Nothing else you run with this Python is affected.
+      autorun.py         ▶ support
+      colours.py         installs vscode/verdict-colours
+      scaffold.py        builds a problem folder from LeetCode: python -m leetkit.scaffold <slug>
+      statement.py       LeetCode HTML to Markdown
+      stubs/             the empty solution.py of every problem, used by leet reset
+    tests/               kit tests: .venv/bin/python -m pytest
