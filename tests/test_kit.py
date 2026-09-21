@@ -285,9 +285,10 @@ def test_scaffolding_never_overwrites_what_you_may_have_written(tmp_path, monkey
 # ---- pressing ▶ on a solution.py
 
 def _run_as_script(folder: Path, extra_env: dict | None = None) -> subprocess.CompletedProcess:
-    """Runs solution.py the way ▶ does, with the hook installed by hand instead of by the .pth file."""
+    """Runs solution.py the way ▶ does, with the hook installed by hand instead of by the .pth file.
+    (The environment's own .pth has already run by then, for "-c", so its once-only guard is reset first.)"""
     root = Path(__file__).resolve().parent.parent
-    starter = ("import sys, runpy; sys.argv = [sys.argv[1]]; import leetkit.autorun as a; a.install(); "
+    starter = ("import sys, runpy; sys.argv = [sys.argv[1]]; import leetkit.autorun as a; a._installed = False; a.install(); "
                "runpy.run_path(sys.argv[0], run_name='__main__')")
     return subprocess.run([sys.executable, "-c", starter, str(folder / "solution.py")], capture_output=True, text=True,
                           env={**os.environ, "PYTHONPATH": str(root), **(extra_env or {})})
@@ -312,7 +313,7 @@ def test_other_files_are_left_alone(tmp_path):
     from leetkit import autorun
     (tmp_path / "scratch.py").write_text("print('hello')")
     (tmp_path / "cases.json").write_text("{}")
-    run = subprocess.run([sys.executable, "-c", "import sys; sys.argv=[sys.argv[1]]; import leetkit.autorun as a; a.install(); "
+    run = subprocess.run([sys.executable, "-c", "import sys; sys.argv=[sys.argv[1]]; import leetkit.autorun as a; a._installed = False; a.install(); "
                           "import atexit; print('hooks', atexit._ncallbacks())", str(tmp_path / "scratch.py")],
                          capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parent.parent)})
     assert "hooks 0" in run.stdout, run.stdout + run.stderr
