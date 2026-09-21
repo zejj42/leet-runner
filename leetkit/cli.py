@@ -119,9 +119,9 @@ def _list(args) -> int:
             level = f"\033[{colours.get(problem.difficulty, '0')}m{level}\033[0m"
             mark = f"\033[1;32m{mark}\033[0m"
             extra = f"\033[1;35m{extra}\033[0m"
-        lines.append(f"{mark} {problem.label:<6}  {problem.title:<{width}}  {level}  {extra}  {problem.slug}")
+        lines.append(f"{mark} {problem.label:<6}  {problem.title:<{width}}  {level}  {extra}".rstrip())
     count = sum(problem.slug in done for problem in problems)
-    lines.append(f"\n{count} of {len(problems)} solved.  leet read <number or slug>")
+    lines.append(f"\n{count} of {len(problems)} solved.  leet read <number or title>")
     _show("\n".join(lines))
     return 0
 
