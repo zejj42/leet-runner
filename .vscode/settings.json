@@ -30,9 +30,18 @@
   "code-runner.executorMap": {
     "python": "\"$workspaceRoot/.venv/bin/python\" -u $fullFileName"
   },
-  "code-runner.runInTerminal": true,
+  "code-runner.runInTerminal": false,
   "code-runner.clearPreviousOutput": true,
   "code-runner.saveFileBeforeRun": true,
   "code-runner.ignoreSelection": true,
-  "code-runner.showExecutionMessage": false
+  "code-runner.showExecutionMessage": false,
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      { "scope": "leet.title", "settings": { "fontStyle": "bold" } },
+      { "scope": "leet.accepted", "settings": { "foreground": "#2EA043", "fontStyle": "bold" } },
+      { "scope": "leet.failed", "settings": { "foreground": "#F85149", "fontStyle": "bold" } },
+      { "scope": "leet.label", "settings": { "foreground": "#D4A72C" } },
+      { "scope": "leet.dim", "settings": { "foreground": "#8B949E" } }
+    ]
+  }
 }

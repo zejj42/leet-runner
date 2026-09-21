@@ -1,0 +1,76 @@
+{
+  "scopeName": "leet.verdict",
+  "injectionSelector": "L:code-runner.output",
+  "patterns": [
+    {
+      "match": "^(.+?)   (Accepted)(   \\d+ / \\d+ testcases passed)?(   \\d+ ms)?(   the method still raises.*)?$",
+      "captures": {
+        "1": {
+          "name": "leet.title"
+        },
+        "2": {
+          "name": "leet.accepted"
+        },
+        "4": {
+          "name": "leet.dim"
+        },
+        "5": {
+          "name": "leet.dim"
+        }
+      }
+    },
+    {
+      "match": "^(.+?)   (Wrong Answer|Runtime Error|Time Limit Exceeded)(   \\d+ / \\d+ testcases passed)?(   \\d+ ms)?(   the method still raises.*)?$",
+      "captures": {
+        "1": {
+          "name": "leet.title"
+        },
+        "2": {
+          "name": "leet.failed"
+        },
+        "4": {
+          "name": "leet.dim"
+        },
+        "5": {
+          "name": "leet.dim"
+        }
+      }
+    },
+    {
+      "match": "^(.+?)   (Not started)(   \\d+ / \\d+ testcases passed)?(   \\d+ ms)?(   the method still raises.*)?$",
+      "captures": {
+        "1": {
+          "name": "leet.title"
+        },
+        "2": {
+          "name": "leet.dim"
+        },
+        "4": {
+          "name": "leet.dim"
+        },
+        "5": {
+          "name": "leet.dim"
+        }
+      }
+    },
+    {
+      "match": "^  (Input|Last input|Output|Expected|Note)\\b",
+      "captures": {
+        "1": {
+          "name": "leet.label"
+        }
+      }
+    },
+    {
+      "match": "^  ([A-Za-z_.]*(?:Error|Exception|Interrupt|Exit)\\b.*?)(     line \\d+)?$",
+      "captures": {
+        "1": {
+          "name": "leet.failed"
+        },
+        "2": {
+          "name": "leet.dim"
+        }
+      }
+    }
+  ]
+}

@@ -12,7 +12,8 @@ Then open the folder in VS Code and accept the recommended Python extension.
 
 Open a problem's `solution.py`, write your code, and press **▶ (Run Python File)** at the top right.
 That judges the file against its cases and prints a verdict for each. F5 does the same with your breakpoints.
-The Code Runner extension's ▶ works too: the workspace settings point it at this project's Python.
+The Code Runner extension's ▶ works too: the workspace settings point it at this project's Python. `./leet setup`
+also installs a tiny extension (vscode/verdict-colours, a grammar and no code) that colours the verdict there.
 
     ./leet next            the first problem on the list you have not passed
     ./leet new 2           create problem 2's folder from LeetCode (number, lc904, slug, or part of the title)

@@ -345,3 +345,11 @@ def test_judging_stops_at_the_first_case_that_fails_and_counts_what_passed_befor
     folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", spec)
     result = judge_folder(folder)                                  # the large cases count too, as on LeetCode
     assert (result.verdict, result.passed, result.total, result.case) == ("Wrong Answer", 1, 4, "two")
+
+
+def test_the_colour_extension_packs_into_something_vs_code_can_install(tmp_path):
+    import zipfile
+    from leetkit.colours import pack
+    names = zipfile.ZipFile(pack(tmp_path / "colours.vsix")).namelist()
+    assert {"[Content_Types].xml", "extension.vsixmanifest", "extension/package.json",
+            "extension/syntaxes/verdict.tmLanguage.json"} <= set(names)

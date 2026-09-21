@@ -56,6 +56,9 @@ def _setup(args) -> int:
     site = subprocess.check_output([str(python), "-c", "import sysconfig; print(sysconfig.get_paths()['purelib'])"], text=True).strip()
     # A .pth file: its first line puts this repo on the path, its second runs at every start of this Python.
     (Path(site) / "leetkit_autorun.pth").write_text(f"{ROOT}\nimport leetkit.autorun; leetkit.autorun.install()\n")
+    from .colours import install
+    if not install():
+        print("VS Code's `code` command was not found, so the verdict in the Output panel stays uncoloured.")
     print("Ready. Open a solution.py and press ▶ (Run Python File) to test it.")
     return 0
 
