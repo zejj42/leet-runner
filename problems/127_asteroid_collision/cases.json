@@ -1,0 +1,27 @@
+{
+  "function": "asteroidCollision",
+  "params": [
+    {"name": "asteroids", "type": "integer[]"}
+  ],
+  "returns": "integer[]",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[5, 10, -5]], "expected": [5, 10]},
+    {"name": "example 2", "args": [[8, -8]], "expected": []},
+    {"name": "example 3", "args": [[10, 2, -5]], "expected": [10]},
+    {"name": "example 4", "args": [[3, 5, -6, 2, -1, 4]], "expected": [-6, 2, 4]},
+    {"name": "smallest input, no collision", "args": [[1, 2]], "expected": [1, 2]},
+    {"name": "equal sizes moving toward each other", "args": [[5, -5]], "expected": []},
+    {"name": "small asteroid followed by a larger oncoming one", "args": [[3, -7]], "expected": [-7]},
+    {"name": "large asteroid followed by a smaller oncoming one", "args": [[7, -3]], "expected": [7]},
+    {"name": "all asteroids moving right", "args": [[1, 2, 3, 4, 5]], "expected": [1, 2, 3, 4, 5]},
+    {"name": "all asteroids moving left", "args": [[-1, -2, -3, -4, -5]], "expected": [-1, -2, -3, -4, -5]},
+    {"name": "asteroids at the maximum size", "args": [[1000, -1000]], "expected": []},
+    {"name": "asteroids at the minimum size", "args": [[1, -1]], "expected": []},
+    {"name": "one large left-moving asteroid behind several smaller right-moving ones", "args": [[1, 2, 3, -10]], "expected": [-10]},
+    {"name": "several left-moving asteroids destroyed by one large right-moving asteroid", "args": [[10, -1, -2, -3]], "expected": [10]},
+    {"name": "many equal-magnitude collisions in a row", "args": [[5, -5, 3, -3, 1, -1]], "expected": []},
+    {"name": "large input, one huge left-moving asteroid at the end", "file": "large_chain.json.gz", "large": true},
+    {"name": "large input, random directions and sizes", "file": "large_random.json.gz", "large": true}
+  ]
+}

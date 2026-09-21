@@ -72,7 +72,7 @@ Every invocation is appended to `journal.jsonl` (git-ignored), one JSON object p
       README.md       statement
       solution.py     your code; not tracked by git, created from leetkit/stubs/
       cases.json      test cases
-      large_*.json    data of cases too big to keep inline
+      large_*.json.gz data of cases too big to keep inline, gzipped
 
 ## cases.json
 
@@ -96,7 +96,7 @@ Add a case by adding a line to `cases`.
 | param type `ListNode`, `TreeNode` | built from LeetCode's notation: `[1, 2, 3]`, `[1, null, 2]` |
 | param type `cycle position` | not passed to the method; links the tail of the preceding list to that index (`-1`: none) |
 | case `"large": true` | five times the time limit |
-| case `"file": "large_input.json"` | `args` and `expected` are read from that file |
+| case `"file": "large_input.json.gz"` | `args` and `expected` are read from that file (gzipped, or plain `.json`) |
 | `"class": "LRUCache"` instead of `function` | design problems; cases carry `ops`, `args`, `expected` |
 
 A `check.py` next to `cases.json` overrides `compare`: `check(args: dict, result, expected) -> bool | str`

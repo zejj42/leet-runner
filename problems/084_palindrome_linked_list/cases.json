@@ -19,7 +19,7 @@
     {"name": "all the same", "args": [[7, 7, 7, 7, 7]], "expected": true},
     {"name": "zeros and a one", "args": [[0, 0, 1]], "expected": false},
     {"name": "three nodes, not one", "args": [[1, 2, 3]], "expected": false},
-    {"name": "largest list, a palindrome", "file": "large_palindrome.json", "large": true},
-    {"name": "largest list, one node off", "file": "large_almost.json", "large": true}
+    {"name": "largest list, a palindrome", "file": "large_palindrome.json.gz", "large": true},
+    {"name": "largest list, one node off", "file": "large_almost.json.gz", "large": true}
   ]
 }

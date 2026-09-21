@@ -50,10 +50,13 @@ class _Markdown(HTMLParser):
             self.out.append("\n```\n")
         elif self.in_pre:
             return
-        elif tag in ("strong", "b"):
-            self.out.append("**")
-        elif tag in ("em", "i"):
-            self.out.append("*")
+        elif tag in ("strong", "b", "em", "i"):
+            # "<em>the longest </em><strong>..." : a space inside the closing marker breaks Markdown, so it moves out
+            last = self.out[-1] if self.out else ""
+            kept = last.rstrip(" \xa0")
+            if self.out:
+                self.out[-1] = kept
+            self.out.append(("**" if tag in ("strong", "b") else "*") + " " * (len(last) - len(kept)))
         elif tag == "code":
             self.out.append("`")
         elif tag in ("p", "div"):
@@ -91,7 +94,9 @@ def to_markdown(html: str) -> str:
     parser = _Markdown()
     parser.feed(_example_blocks_as_pre(html or ""))
     text = "".join(parser.out).replace("\xa0", " ")
-    text = re.sub(r"\*\*([^*\n]+?)\s+\*\*", r"**\1** ", text)      # "**Output: **x" renders as literal stars
+    # "**Output: **x" renders as literal stars: the space moves outside. Spans are taken pair by pair, so the text
+    # between one bold word and the next is never mistaken for a span of its own.
+    text = re.sub(r"\*\*([^*\n]+?)\*\*", lambda m: f"**{m.group(1).rstrip()}**" + (" " if m.group(1) != m.group(1).rstrip() else ""), text)
     text = re.sub(r"\*\*\*\*", "", text)
 
     # Outside code fences, lines start at the margin (list items keep their nesting); inside, nothing is touched

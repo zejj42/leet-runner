@@ -12,7 +12,8 @@ cases.json, for a function problem:
 
 "compare" is one of: exact (default), unordered, unordered_nested, float, any_of.
 A case with "large": true is given five times the time limit.
-A case may be {"name": ..., "file": "large_input.json", "large": true}, with its args and expected in that file.
+A case may be {"name": ..., "file": "large_input.json.gz", "large": true}, with its args and expected in that
+file, gzipped or not.
 "returns": "void" with "output_param": 0 judges the argument the solution changed in place.
 A parameter of type "cycle position" is not passed on: it ties the tail of the list before it back to that index (-1: no cycle).
 Types ListNode and TreeNode are built from, and turned back into, LeetCode's list notation.
@@ -88,7 +89,7 @@ def load_spec(folder: Path) -> Spec:
     cases = []
     for i, c in enumerate(data.get("cases", [])):
         if "file" in c:                                   # a case too big to read keeps its data in its own file
-            c = {**json.loads((folder / c["file"]).read_text()), **{k: v for k, v in c.items() if k != "file"}}
+            c = {**_read_data(folder / c["file"]), **{k: v for k, v in c.items() if k != "file"}}
         cases.append(Case(name=c.get("name", f"case {i + 1}"), args=c.get("args", []), expected=c.get("expected"),
                           large=c.get("large", False), ops=c.get("ops")))
     return Spec(folder=folder, function=data.get("function"), class_name=data.get("class"), params=data.get("params", []),
@@ -97,6 +98,14 @@ def load_spec(folder: Path) -> Spec:
 
 
 # ---- loading the solution
+
+def _read_data(path: Path) -> dict:
+    """A large case's data. Gzipped (large_input.json.gz) it takes a fraction of the room in the repo."""
+    if path.suffix == ".gz":
+        import gzip
+        return json.loads(gzip.decompress(path.read_bytes()))
+    return json.loads(path.read_text())
+
 
 def _load_module(path: Path, name: str):
     """Compiled from the source every time. Python's bytecode cache goes by size and whole-second timestamps,

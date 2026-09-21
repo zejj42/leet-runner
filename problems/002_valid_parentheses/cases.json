@@ -1,0 +1,28 @@
+{
+  "function": "isValid",
+  "params": [
+    {"name": "s", "type": "string"}
+  ],
+  "returns": "boolean",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": ["()"], "expected": true},
+    {"name": "example 2", "args": ["()[]{}"], "expected": true},
+    {"name": "example 3", "args": ["(]"], "expected": false},
+    {"name": "example 4", "args": ["([])"], "expected": true},
+    {"name": "example 5", "args": ["([)]"], "expected": false},
+    {"name": "single opening bracket", "args": ["("], "expected": false},
+    {"name": "single closing bracket", "args": [")"], "expected": false},
+    {"name": "one pair of curly brackets", "args": ["{}"], "expected": true},
+    {"name": "one pair of square brackets", "args": ["[]"], "expected": true},
+    {"name": "all opening brackets", "args": ["(((((((("], "expected": false},
+    {"name": "deeply nested same type", "args": ["(((((((())))))))"], "expected": true},
+    {"name": "deeply nested mixed types", "args": ["{[({({}[()])})]}"], "expected": true},
+    {"name": "extra opening at the end", "args": ["()("], "expected": false},
+    {"name": "extra closing at the end", "args": ["())"], "expected": false},
+    {"name": "mismatched adjacent brackets", "args": ["{[}]"], "expected": false},
+    {"name": "many repeated pairs", "args": ["()()()()()()()()()()()()()()()()()()()()"], "expected": true},
+    {"name": "largest input, valid", "file": "large_valid.json.gz", "large": true},
+    {"name": "largest input, invalid", "file": "large_invalid.json.gz", "large": true}
+  ]
+}

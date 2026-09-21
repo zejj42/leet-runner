@@ -1,0 +1,29 @@
+{
+  "function": "calculate",
+  "params": [
+    {"name": "s", "type": "string"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": ["3+2*2"], "expected": 7},
+    {"name": "example 2", "args": [" 3/2 "], "expected": 1},
+    {"name": "example 3", "args": [" 3+5 / 2 "], "expected": 5},
+    {"name": "single number", "args": ["5"], "expected": 5},
+    {"name": "single number with surrounding spaces", "args": [" 42 "], "expected": 42},
+    {"name": "zero", "args": ["0"], "expected": 0},
+    {"name": "no spaces at all", "args": ["3+2*2-1"], "expected": 6},
+    {"name": "many spaces between tokens", "args": ["3    +    2   *   2"], "expected": 7},
+    {"name": "simple division", "args": ["3/2"], "expected": 1},
+    {"name": "division inside a subtraction", "args": ["3-8/3"], "expected": 1},
+    {"name": "division exactly to zero", "args": ["0/5"], "expected": 0},
+    {"name": "chain of multiplications", "args": ["2*3*4*5"], "expected": 120},
+    {"name": "chain of divisions", "args": ["100/5/2"], "expected": 10},
+    {"name": "addition and subtraction only", "args": ["10-3+2-1"], "expected": 8},
+    {"name": "multi-digit numbers", "args": ["123+456*2"], "expected": 1035},
+    {"name": "value at the maximum 32-bit int", "args": ["2147483647"], "expected": 2147483647},
+    {"name": "subtraction reaching a negative result", "args": ["3-30"], "expected": -27},
+    {"name": "largest input, chain of additions subtractions and multiplications", "file": "large_chain.json.gz", "large": true},
+    {"name": "largest input, all four operators mixed with multi-digit numbers", "file": "large_mixed.json.gz", "large": true}
+  ]
+}

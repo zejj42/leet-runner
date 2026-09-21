@@ -141,10 +141,13 @@ def _stub(problem: Problem, question: dict, meta: dict) -> str:
 
 
 def _drop_leading_comments(code: str) -> str:
-    """LeetCode ships the node classes as a comment block on top; here they are real and come from leetkit."""
+    """LeetCode ships the node classes as a comment block on top; here they are real and come from leetkit. Under a
+    class to design it adds a note on how the class will be called; the statement's example shows that already."""
     lines = code.split("\n")
     while lines and (lines[0].startswith("#") or not lines[0].strip()):
         lines.pop(0)
+    while lines and (lines[-1].startswith("#") or not lines[-1].strip()):
+        lines.pop()
     return "\n".join(lines)
 
 

@@ -623,3 +623,29 @@ def test_startover_empties_every_solution_and_forgets_what_was_solved_after_a_ye
 
     monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("nothing to erase, nothing to ask"))
     assert cli.main(["startover"]) == 0 and "Nothing to start over" in capsys.readouterr().out
+
+
+def test_bold_words_in_one_sentence_keep_to_themselves():
+    text = to_markdown("<p><strong>Note:</strong> You are <strong>not</strong> allowed.</p>\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>")
+    assert "**Note:** You are **not** allowed." in text and "\n**Example 1:**" in text
+    assert "**Output:** x" in to_markdown("<p><strong>Output: </strong>x</p>")
+
+
+def test_a_class_stub_ends_with_its_last_method():
+    code = "class MinStack:\n\n    def __init__(self):\n        \n\n    def top(self) -> int:\n        \n\n\n# Your MinStack object will be called as such:\n# obj = MinStack()\n"
+    stub = scaffolding._fill_bodies(scaffolding._drop_leading_comments(code))
+    assert "# Your" not in stub and stub.count("raise NotImplementedError") == 2
+
+
+def test_emphasis_that_ends_in_a_space_and_runs_into_more_emphasis_stays_well_formed():
+    text = to_markdown("<p>return <em>the length of the longest </em><strong><em>substring</em></strong>.</p>")
+    assert "return *the length of the longest* ***substring***." in text
+
+
+def test_a_large_case_can_keep_its_data_gzipped(tmp_path):
+    import gzip
+    spec = {**ADD, "cases": [{"name": "big", "file": "large_input.json.gz", "large": True}]}
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", spec)
+    (folder / "large_input.json.gz").write_bytes(gzip.compress(json.dumps({"args": [40, 2], "expected": 42}).encode()))
+    judge(folder)
+    assert load_spec(folder).cases[0].args == [40, 2]

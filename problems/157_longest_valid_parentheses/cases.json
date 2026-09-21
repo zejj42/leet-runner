@@ -1,0 +1,28 @@
+{
+  "function": "longestValidParentheses",
+  "params": [
+    {"name": "s", "type": "string"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": ["(()"], "expected": 2},
+    {"name": "example 2", "args": [")()())"], "expected": 4},
+    {"name": "example 3", "args": [""], "expected": 0},
+    {"name": "single open paren", "args": ["("], "expected": 0},
+    {"name": "single close paren", "args": [")"], "expected": 0},
+    {"name": "single pair", "args": ["()"], "expected": 2},
+    {"name": "all open parens", "args": ["((((("], "expected": 0},
+    {"name": "all close parens", "args": [")))))"], "expected": 0},
+    {"name": "nested parentheses", "args": ["(((())))"], "expected": 8},
+    {"name": "nested with one unmatched closing at the end", "args": ["(()))"], "expected": 4},
+    {"name": "consecutive pairs", "args": ["()()()()"], "expected": 8},
+    {"name": "closing bracket before anything else", "args": [")()"], "expected": 2},
+    {"name": "valid run then an unmatched opening tail", "args": ["()()()("], "expected": 6},
+    {"name": "valid pairs surrounding a broken one", "args": ["()())()"], "expected": 4},
+    {"name": "gap between two valid groups", "args": ["(())(()"], "expected": 4},
+    {"name": "one long valid run of nested pairs", "args": ["()(()())"], "expected": 8},
+    {"name": "largest input, one fully nested run", "file": "large_nested.json.gz", "large": true},
+    {"name": "largest input, repeating broken triples", "file": "large_repeating.json.gz", "large": true}
+  ]
+}

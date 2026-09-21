@@ -1,0 +1,28 @@
+{
+  "function": "calculate",
+  "params": [
+    {"name": "s", "type": "string"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": ["1 + 1"], "expected": 2},
+    {"name": "example 2", "args": [" 2-1 + 2 "], "expected": 3},
+    {"name": "example 3", "args": ["(1+(4+5+2)-3)+(6+8)"], "expected": 23},
+    {"name": "single number", "args": ["5"], "expected": 5},
+    {"name": "single number with surrounding spaces", "args": [" 42 "], "expected": 42},
+    {"name": "zero", "args": ["0"], "expected": 0},
+    {"name": "unary minus before a number", "args": ["-7"], "expected": -7},
+    {"name": "unary minus before a parenthesised group", "args": ["-(3+2)"], "expected": -5},
+    {"name": "nested unary minuses", "args": ["-(-(3))"], "expected": 3},
+    {"name": "deeply nested parentheses around a single number", "args": ["(((((5)))))"], "expected": 5},
+    {"name": "many spaces between every token", "args": ["1    +     2"], "expected": 3},
+    {"name": "chain of additions and subtractions", "args": ["1+2-3+4-5"], "expected": -1},
+    {"name": "negative result", "args": ["2 - 10"], "expected": -8},
+    {"name": "multi-digit numbers", "args": ["123+456"], "expected": 579},
+    {"name": "value at the maximum 32-bit int", "args": ["2147483647"], "expected": 2147483647},
+    {"name": "reaching the minimum 32-bit int", "args": ["-2147483647-1"], "expected": -2147483648},
+    {"name": "largest input, long chain of additions and subtractions", "file": "large_chain.json.gz", "large": true},
+    {"name": "largest input, deeply nested parentheses", "file": "large_nested.json.gz", "large": true}
+  ]
+}

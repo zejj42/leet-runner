@@ -17,7 +17,7 @@
     {"name": "repeating values", "args": [[1, 2, 1, 2, 1]], "expected": [1, 1, 2, 2, 1]},
     {"name": "descending", "args": [[9, 8, 7, 6, 5, 4, 3, 2]], "expected": [9, 2, 8, 3, 7, 4, 6, 5]},
     {"name": "large values", "args": [[1000, 1, 999, 2, 998]], "expected": [1000, 998, 1, 2, 999]},
-    {"name": "largest list", "file": "large_list.json", "large": true}
+    {"name": "largest list", "file": "large_list.json.gz", "large": true}
   ],
   "output_param": 0
 }

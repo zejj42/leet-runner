@@ -1,0 +1,26 @@
+{
+  "function": "backspaceCompare",
+  "params": [
+    {"name": "s", "type": "string"},
+    {"name": "t", "type": "string"}
+  ],
+  "returns": "boolean",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": ["ab#c", "ad#c"], "expected": true},
+    {"name": "example 2", "args": ["ab##", "c#d#"], "expected": true},
+    {"name": "example 3", "args": ["a#c", "b"], "expected": false},
+    {"name": "single matching letter", "args": ["a", "a"], "expected": true},
+    {"name": "single differing letter", "args": ["a", "b"], "expected": false},
+    {"name": "lone backspace on empty text", "args": ["#", "#"], "expected": true},
+    {"name": "one string erases its only letter", "args": ["a#", "a"], "expected": false},
+    {"name": "leading backspaces with nothing to erase", "args": ["###a", "a"], "expected": true},
+    {"name": "trailing backspace after content", "args": ["ab#", "a"], "expected": true},
+    {"name": "many consecutive backspaces on both sides", "args": ["y#fo##f", "y#f#o##f"], "expected": true},
+    {"name": "no backspaces, equal strings", "args": ["abc", "abc"], "expected": true},
+    {"name": "no backspaces, different strings", "args": ["abc", "abd"], "expected": false},
+    {"name": "both fully backspaced away", "args": ["abc###", "#"], "expected": true},
+    {"name": "longest input, identical with no backspaces", "args": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], "expected": true},
+    {"name": "longest input, differ after processing", "args": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"], "expected": false}
+  ]
+}
