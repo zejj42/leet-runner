@@ -45,10 +45,13 @@ Write the solution with `leet code`, or in any editor, then:
       example 2
       Input       nums = [3, 2, 4]
                   target = 6
+      Stdout      looking at 3
+                  looking at 2
       Output      [0, 1]
       Expected    [1, 2]
 
-Judging stops at the first failing case.
+Judging stops at the first failing case. `Stdout` is what your `print` calls wrote during the case shown: the
+failing one, or, when everything passed, the first.
 
 | Verdict | Meaning |
 |---|---|

@@ -70,3 +70,26 @@ def test_an_accepted_problem_is_marked_solved_in_the_list_and_stays_so(tmp_path,
     problem(elsewhere, "class Solution:\n    def add(self, a, b): return a + b", ADD)
     judge_and_report(elsewhere)
     assert list(progress.solved()) == ["two-sum"]                           # a copy outside the repo does not count
+
+
+def test_prints_are_shown_with_the_case_they_belong_to(tmp_path):
+    from leetkit.run import judge_folder, report
+    spec = {**ADD, "cases": [{"name": "one", "args": [1, 1], "expected": 2}, {"name": "two", "args": [2, 2], "expected": 5},
+                             {"name": "three", "args": [3, 3], "expected": 6}]}
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b):\n        print('adding', a)\n        print('and', b)\n        return a + b", spec)
+    said = report("Add", judge_folder(folder)).split("\n")
+    assert said[0].startswith("Add   Wrong Answer   1 / 3") and "  two" in said
+    assert said.index("  Stdout      adding 2") == said.index("              b = 2") + 1          # after the input
+    assert said.index("              and 2") + 1 == said.index("  Output      4")               # before the output
+    assert not any("adding 1" in row or "adding 3" in row for row in said)                       # only the failing case's
+
+    spec["cases"][1]["expected"] = 4
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b):\n        print('adding', a)\n        print('and', b)\n        return a + b", spec)
+    said = report("Add", judge_folder(folder)).split("\n")
+    assert said[0].startswith("Add   Accepted   3 / 3") and said[2:] == ["  one", "  Stdout      adding 1", "              and 1"]
+
+    quiet = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", spec)
+    assert len(report("Add", judge_folder(quiet)).split("\n")) == 1                              # no prints, one line
+
+    noisy = problem(tmp_path, "class Solution:\n    def add(self, a, b):\n        for n in range(100): print(n)\n        return 0", spec)
+    assert "... and 70 more lines" in report("Add", judge_folder(noisy))

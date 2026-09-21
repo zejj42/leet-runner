@@ -54,7 +54,7 @@
       }
     },
     {
-      "match": "^  (Input|Last input|Output|Expected|Note)\\b",
+      "match": "^  (Input|Last input|Stdout|Output|Expected|Note)\\b",
       "captures": {
         "1": {
           "name": "leet.label"

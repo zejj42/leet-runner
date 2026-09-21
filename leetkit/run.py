@@ -6,6 +6,8 @@ This is what pressing ▶ on a solution.py shows, and what `leet test` prints.
 
 from __future__ import annotations
 
+import contextlib
+import io
 import sys
 import time
 from dataclasses import dataclass
@@ -22,6 +24,8 @@ class Result:
     case: str = ""            # the first case that went wrong
     details: str = ""
     milliseconds: int = 0
+    stdout: str = ""          # what your code printed during the case shown: the failing one, or else the first
+    stdout_case: str = ""
 
     @property
     def accepted(self) -> bool:
@@ -34,20 +38,26 @@ def judge_folder(folder: Path) -> Result:
     cases = spec.cases
     result = Result("Accepted", total=len(cases))
     started = time.perf_counter()
-    for case in cases:
+    for index, case in enumerate(cases):
+        printed = io.StringIO()
         try:
-            run_case(spec, case)
+            with contextlib.redirect_stdout(printed):       # prints are shown with the case they belong to, as on LeetCode
+                run_case(spec, case)
         except NotStarted:
             return Result("Not started", total=len(cases))
         except WrongAnswer as wrong:
             result.verdict, result.case, result.details = wrong.verdict, case.name, str(wrong)
+            result.stdout, result.stdout_case = printed.getvalue(), case.name
             break
         except Exception as crash:                         # your code raised: say what, and where in your file
             where = _line_in(crash, folder)
             error = f"  {type(crash).__name__}: {crash}" + (f"     line {where}" if where else "")
             result.verdict, result.case = "Runtime Error", case.name
             result.details = error + "\n" + describe(spec, case, input_label="Last input")
+            result.stdout, result.stdout_case = printed.getvalue(), case.name
             break
+        if index == 0:
+            result.stdout, result.stdout_case = printed.getvalue(), case.name
         result.passed += 1
     result.milliseconds = round((time.perf_counter() - started) * 1000)
     return result
@@ -79,9 +89,23 @@ def one_line(result: Result) -> str:
 
 def report(title: str, result: Result) -> str:
     lines = [f"{_paint(title, '1')}   {one_line(result)}"]
+    printed = _stdout_block(result.stdout)
     if result.details:
-        lines += ["", _paint(f"  {result.case}", "2"), result.details]
+        details = result.details.split("\n")
+        # the prints go where LeetCode puts them: after the input, before your output
+        at = next((i for i, line in enumerate(details) if line.startswith(("  Output", "  Expected"))), len(details))
+        lines += ["", _paint(f"  {result.case}", "2")] + details[:at] + printed + details[at:]
+    elif printed:                                           # nothing went wrong: the first case's prints, as a sample
+        lines += ["", _paint(f"  {result.stdout_case}", "2")] + printed
     return "\n".join(lines)
+
+
+def _stdout_block(text: str, most: int = 30) -> list[str]:
+    rows = text.rstrip("\n").split("\n") if text.strip() else []
+    if len(rows) > most:
+        rows = rows[:most] + [f"... and {len(rows) - most} more lines"]
+    rows = [row if len(row) <= 300 else row[:300] + " ..." for row in rows]
+    return [f"  {'Stdout' if index == 0 else '':<12}{_paint(row, '36')}" for index, row in enumerate(rows)]
 
 
 def title_of(folder: Path) -> str:
