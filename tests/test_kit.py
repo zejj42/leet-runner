@@ -598,3 +598,28 @@ def test_an_accepted_problem_is_marked_solved_in_the_list_and_stays_so(tmp_path,
     problem(elsewhere, "class Solution:\n    def add(self, a, b): return a + b", ADD)
     judge_and_report(elsewhere)
     assert list(progress.solved()) == ["two-sum"]                           # a copy outside the repo does not count
+
+
+def test_startover_empties_every_solution_and_forgets_what_was_solved_after_a_yes(tmp_path, monkeypatch, capsys):
+    from leetkit import cli, progress
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    written, untouched = find("two-sum"), find("reorder-list")
+    for one in (written, untouched):
+        one.folder.mkdir()
+        (one.folder / "solution.py").write_text(one.stub.read_text())
+    (written.folder / "solution.py").write_text("my code")
+    (written.folder / "cases.json").write_text("my cases")
+    progress.mark_solved("two-sum")
+
+    monkeypatch.setattr("builtins.input", lambda prompt: "")
+    assert cli.main(["startover"]) == 1                                     # Enter alone means no
+    assert "1 problem" in capsys.readouterr().out and (written.folder / "solution.py").read_text() == "my code"
+    assert list(progress.solved()) == ["two-sum"]
+
+    monkeypatch.setattr("builtins.input", lambda prompt: "y")
+    assert cli.main(["startover"]) == 0
+    assert (written.folder / "solution.py").read_text() == written.stub.read_text()
+    assert (written.folder / "cases.json").read_text() == "my cases" and progress.solved() == {}
+
+    monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("nothing to erase, nothing to ask"))
+    assert cli.main(["startover"]) == 0 and "Nothing to start over" in capsys.readouterr().out

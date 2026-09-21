@@ -18,6 +18,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet test <problem>     judge problems/<problem>/solution.py
     leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
+    leet startover          reset every solution.py and forget what was solved (asks first; -y skips the question)
     leet open <problem>     open the statement and solution.py in VS Code (needs a desktop session)
     leet setup              create or repair .venv, the leet link and the VS Code extension
     leet update             git pull the newest problems and kit, then setup again; lists what changed

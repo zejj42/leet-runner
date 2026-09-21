@@ -38,7 +38,7 @@ def _run(argv: list[str], facts: dict) -> int:
     from .version import version
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{list,read,code,test,open,reset,setup,update}")
+    commands = parser.add_subparsers(dest="command", required=True, metavar="{list,read,code,test,open,reset,startover,setup,update}")
     commands.add_parser("list", help="every problem in the repo")
     commands.add_parser("read", help="show a problem's statement").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
@@ -47,6 +47,8 @@ def _run(argv: list[str], facts: dict) -> int:
     reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
     reset.add_argument("problem", nargs="+", help=_PROBLEM)
     reset.add_argument("-y", "--yes", action="store_true", help="do not ask first")
+    startover = commands.add_parser("startover", help="erase your code in every problem and forget what was solved")
+    startover.add_argument("-y", "--yes", action="store_true", help="do not ask first")
     commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
 
     commands.add_parser("update", help="get the newest problems and kit from GitHub; your solutions are left alone")
@@ -54,7 +56,7 @@ def _run(argv: list[str], facts: dict) -> int:
     args = parser.parse_args(argv)
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
-        return {"list": _list, "read": _read, "code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup, "update": _update}[args.command](args)
+        return {"list": _list, "read": _read, "code": _code, "test": _test, "open": _open, "reset": _reset, "startover": _startover, "setup": _setup, "update": _update}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
         facts["error"] = str(problem)
@@ -180,6 +182,32 @@ def _reset(args) -> int:
     solution.write_text(problem.stub.read_text())
     args.facts["erased"] = True
     print(f"{problem.title} is back to its starting state.")
+    return 0
+
+
+def _startover(args) -> int:
+    from . import progress
+    written = [problem for problem in all_problems()
+               if problem.stub.exists() and (problem.folder / "solution.py").exists()
+               and (problem.folder / "solution.py").read_text() != problem.stub.read_text()]
+    marks = len(progress.solved())
+    args.facts.update(erased=0, forgotten=0)
+    if not written and not marks:
+        print("Nothing to start over from: no code written, nothing marked solved.")
+        return 0
+    if not args.yes:
+        print(f"This erases your code in {len(written)} problem{'' if len(written) == 1 else 's'}"
+              f" and forgets {marks} solved mark{'' if marks == 1 else 's'}. The cases and the journal stay.")
+        for problem in written:
+            print(f"  · {problem.title}")
+        if input("Start over? [y/N] ").strip().lower() not in ("y", "yes"):
+            print("Left as it is.")
+            return 1
+    for problem in written:
+        (problem.folder / "solution.py").write_text(problem.stub.read_text())
+    progress.forget_all()
+    args.facts.update(erased=len(written), forgotten=marks)
+    print("Started over: every problem is empty and unsolved again.")
     return 0
 
 

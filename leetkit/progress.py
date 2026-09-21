@@ -32,3 +32,8 @@ def mark_solved(slug: str) -> None:
         PATH.write_text(json.dumps(known, indent=2, sort_keys=True) + "\n")
     except OSError:
         pass
+
+
+def forget_all() -> None:
+    PATH.unlink(missing_ok=True)
+
