@@ -145,8 +145,9 @@ def _update(args) -> int:
         raise LookupError("This copy was not made with git clone, so it cannot update itself.")
     had = _folders()
     was = _commit()
-    if subprocess.call(["git", "-C", str(ROOT), "pull", "--ff-only", "--autostash", "--quiet"]) != 0:
-        print("\nNot updated: git's message, above, says why.")
+    pull = subprocess.run(["git", "-C", str(ROOT), "pull", "--ff-only", "--autostash"], capture_output=True, text=True)
+    if pull.returncode != 0:
+        print(f"Not updated. git says:\n\n{(pull.stderr or pull.stdout).strip()}")
         return 1
     args.facts.update(was=was, now=_commit())
     if _commit() == was:
