@@ -34,7 +34,6 @@ once it has loaded. `leetkit/autorun.py` is all of it. Nothing else you run with
       README.md          the statement, reworded; no follow-up, no hints
       solution.py        yours. Never overwritten by any command.
       cases.json         the test cases, one per line. Add your own. Never overwritten either.
-      scratch.py         call your solution by hand and print; F5 > "Run this file"
       test_solution.py   turns cases.json into tests; extra tests of your own go below
 
 Open a README's preview with ⇧⌘V: `.vscode/markdown.css` colours it, in light and dark.

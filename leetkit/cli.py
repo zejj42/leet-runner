@@ -21,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
 
     new = commands.add_parser("new", help="create a problem's folder from LeetCode")
     new.add_argument("problem", help="chart number, lc<id>, slug, or part of the title")
-    new.add_argument("--force", action="store_true", help="refresh the README and the test file; your solution, cases and scratch file are kept")
+    new.add_argument("--force", action="store_true", help="refresh the test file; your solution, cases and README are kept")
 
     test = commands.add_parser("test", help="run a problem's tests (or every problem's)")
     test.add_argument("problem", nargs="?", help="leave out to test everything you have started")
