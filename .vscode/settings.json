@@ -9,6 +9,8 @@
   "python.analysis.extraPaths": [
     "${workspaceFolder}"
   ],
+  "python.terminal.activateEnvironment": false,
+  "python-envs.terminal.autoActivationType": "off",
   "python.envFile": "${workspaceFolder}/.env",
   "terminal.integrated.env.osx": {
     "PYTHONPATH": "${workspaceFolder}"
