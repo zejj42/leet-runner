@@ -26,9 +26,9 @@
   ],
   "markdown.preview.breaks": false,
   "code-runner.executorMap": {
-    "python": "\"$workspaceRoot/.venv/bin/python\" -u"
+    "python": "\"$workspaceRoot/.venv/bin/python\" -u $fullFileName"
   },
-  "code-runner.runInTerminal": true,
+  "code-runner.runInTerminal": false,
   "code-runner.clearPreviousOutput": true,
   "code-runner.saveFileBeforeRun": true
 }
