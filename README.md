@@ -19,6 +19,7 @@ also installs a tiny extension (vscode/verdict-colours, a grammar and no code) t
 
     leet open two-sum    open its statement and solution in VS Code
     leet test two-sum    the same judging from the terminal
+    leet reset two-sum   erase your code: solution.py goes back to its empty starting state (it asks first)
 
 A problem is named by its LeetCode slug (`two-sum`, the end of its address), its number on the list (`1`),
 or words from its title (`"two sum"`).

@@ -262,8 +262,10 @@ QUESTION = {"questionFrontendId": "1", "title": "Two Sum", "difficulty": "Easy",
 def test_scaffolding_never_overwrites_what_you_may_have_written(tmp_path, monkeypatch):
     monkeypatch.setattr(scaffolding, "fetch", lambda slug: QUESTION)
     monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    monkeypatch.setattr("leetkit.catalog.STUBS_DIR", tmp_path / "stubs")
     two_sum = find("1")
     folder = scaffolding.scaffold(two_sum)
+    assert two_sum.stub.read_text() == (folder / "solution.py").read_text()            # kept for `leet reset`
 
     solution = (folder / "solution.py").read_text()
     assert "__main__" not in solution and "raise NotImplementedError" in solution      # the hand-run block lives elsewhere
@@ -367,3 +369,32 @@ def test_the_command_takes_a_number_a_slug_or_title_words_and_nothing_else(capsy
     for gone in (["new", "2"], ["list"], ["next"], ["test"], ["open"]):
         with pytest.raises(SystemExit):
             cli.main(gone)
+
+
+def test_reset_puts_the_empty_solution_back_but_only_after_a_yes(tmp_path, monkeypatch, capsys):
+    from leetkit import cli
+    monkeypatch.setattr(scaffolding, "fetch", lambda slug: QUESTION)
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    monkeypatch.setattr("leetkit.catalog.STUBS_DIR", tmp_path / "stubs")
+    monkeypatch.setattr("leetkit.cli.ROOT", tmp_path)
+    solution = scaffolding.scaffold(find("two-sum")) / "solution.py"
+    empty = solution.read_text()
+
+    assert cli.main(["reset", "two-sum"]) == 0 and "already" in capsys.readouterr().out   # nothing to erase, nothing asked
+
+    solution.write_text("my code")
+    monkeypatch.setattr("builtins.input", lambda prompt: "")
+    assert cli.main(["reset", "two-sum"]) == 1 and solution.read_text() == "my code"      # Enter alone means no
+    monkeypatch.setattr("builtins.input", lambda prompt: "y")
+    assert cli.main(["reset", "two-sum"]) == 0 and solution.read_text() == empty
+
+    solution.write_text("my code")
+    monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("asked, despite --yes"))
+    assert cli.main(["reset", "1", "--yes"]) == 0 and solution.read_text() == empty
+
+
+def test_every_problem_in_the_repo_can_be_reset():
+    from leetkit.catalog import all_problems
+    for problem in all_problems():
+        if problem.folder.exists():
+            assert "raise NotImplementedError" in problem.stub.read_text(), problem.title

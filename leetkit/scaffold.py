@@ -45,8 +45,11 @@ def scaffold(problem: Problem, force: bool = False) -> Path:
     # Always refreshed: what comes from the kit. Never overwritten: what has been written in by hand, and that
     # includes the README, whose statement gets reworded so that it is this repo's own.
     (folder / "test_solution.py").write_text(_TEST_FILE)
+    stub = _stub(problem, question, meta)
+    problem.stub.parent.mkdir(parents=True, exist_ok=True)
+    problem.stub.write_text(stub)                               # what `leet reset` puts back
     for name, content in (("README.md", _readme(problem, question)),
-                          ("solution.py", _stub(problem, question, meta)),
+                          ("solution.py", stub),
                           ("cases.json", format_cases(_cases(question, meta)))):
         if content and not (folder / name).exists():
             (folder / name).write_text(content)

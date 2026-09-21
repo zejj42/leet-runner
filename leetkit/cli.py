@@ -1,4 +1,4 @@
-"""leet: test a problem, open one in VS Code, set the repo up."""
+"""leet: test a problem, open one in VS Code, reset one to its empty state, set the repo up."""
 
 from __future__ import annotations
 
@@ -16,14 +16,17 @@ _PROBLEM = "its number on the list (1), its LeetCode slug (two-sum), or words fr
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{test,open,setup}")
+    commands = parser.add_subparsers(dest="command", required=True, metavar="{test,open,reset,setup}")
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
+    reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
+    reset.add_argument("problem", nargs="+", help=_PROBLEM)
+    reset.add_argument("-y", "--yes", action="store_true", help="do not ask first")
     commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
 
     args = parser.parse_args(argv)
     try:
-        return {"test": _test, "open": _open, "setup": _setup}[args.command](args)
+        return {"test": _test, "open": _open, "reset": _reset, "setup": _setup}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
         return 2
@@ -68,6 +71,24 @@ def _open(args) -> int:
         print(problem.folder)
         return 0
     return subprocess.call(["code", str(ROOT), str(problem.folder / "README.md"), str(problem.folder / "solution.py")])
+
+
+def _reset(args) -> int:
+    problem = _in_the_repo(args.problem)
+    if not problem.stub.exists():
+        raise LookupError(f"{problem.title} has no starting file saved in {problem.stub.parent.relative_to(ROOT)}.")
+    solution = problem.folder / "solution.py"
+    if solution.exists() and solution.read_text() == problem.stub.read_text():
+        print(f"{problem.title} is already in its starting state.")
+        return 0
+    if not args.yes:
+        answer = input(f"This erases your code in {solution.relative_to(ROOT)}. Go on? [y/N] ")
+        if answer.strip().lower() not in ("y", "yes"):
+            print("Left as it is.")
+            return 1
+    solution.write_text(problem.stub.read_text())
+    print(f"{problem.title} is back to its starting state.")
+    return 0
 
 
 def _in_the_repo(words: list[str]) -> Problem:

@@ -10,6 +10,7 @@ from typing import Optional
 
 ROOT = Path(__file__).resolve().parent.parent
 PROBLEMS_DIR = ROOT / "problems"
+STUBS_DIR = ROOT / "leetkit" / "stubs"          # each solution.py as it was before anyone wrote in it
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,10 @@ class Problem:
     @property
     def folder(self) -> Path:
         return PROBLEMS_DIR / f"{self.label}_{self.slug.replace('-', '_')}"
+
+    @property
+    def stub(self) -> Path:
+        return STUBS_DIR / f"{self.folder.name}.py"
 
     @property
     def url(self) -> str:
