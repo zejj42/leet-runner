@@ -1,5 +1,5 @@
 [project]
-name = "leet-practice"
+name = "leet-runner"
 version = "0.1.0"
 description = "The LeetTracker list, to solve and test locally."
 requires-python = ">=3.10"

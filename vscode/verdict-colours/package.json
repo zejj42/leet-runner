@@ -1,8 +1,8 @@
 {
   "name": "leet-verdict-colours",
   "displayName": "Leet verdict colours",
-  "publisher": "leet-practice",
-  "description": "Colours leet-practice's verdicts in Code Runner's Output panel.",
+  "publisher": "leet-runner",
+  "description": "Colours leet-runner's verdicts in Code Runner's Output panel.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.60.0"

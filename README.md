@@ -1,4 +1,4 @@
-# leet-practice
+# leet-runner
 
 The LeetTracker list (the 169 chart problems, then the off-list ones), to solve in VS Code and test locally.
 
