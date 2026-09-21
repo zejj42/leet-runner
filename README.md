@@ -21,6 +21,8 @@ also installs a tiny extension (vscode/verdict-colours, a grammar and no code) t
     leet test two-sum    the same judging from the terminal
     leet reset two-sum   erase your code: solution.py goes back to its empty starting state (it asks first)
 
+Every `leet` command you run is written to `journal.jsonl`, one line each, with the verdict when it was a test.
+
 A problem is named by its LeetCode slug (`two-sum`, the end of its address), its number on the list (`1`),
 or words from its title (`"two sum"`).
 

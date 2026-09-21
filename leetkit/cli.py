@@ -15,6 +15,25 @@ _PROBLEM = "its number on the list (1), its LeetCode slug (two-sum), or words fr
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Runs the command, and writes it in the journal however it ended: done, refused, or not even understood."""
+    from . import journal
+    argv = list(sys.argv[1:] if argv is None else argv)
+    facts: dict = {}
+    code = 1
+    try:
+        code = _run(argv, facts)
+        return code
+    except SystemExit as leaving:                           # argparse: --help, or a command it does not know
+        code = leaving.code if isinstance(leaving.code, int) else 1
+        raise
+    except KeyboardInterrupt:
+        code = 130
+        raise
+    finally:
+        journal.record(argv, code, **facts)
+
+
+def _run(argv: list[str], facts: dict) -> int:
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
     commands = parser.add_subparsers(dest="command", required=True, metavar="{test,open,reset,setup}")
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
@@ -25,10 +44,12 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
 
     args = parser.parse_args(argv)
+    args.facts = facts                                      # what a command adds to its line in the journal
     try:
         return {"test": _test, "open": _open, "reset": _reset, "setup": _setup}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
+        facts["error"] = str(problem)
         return 2
 
 
@@ -62,11 +83,17 @@ def _setup(args) -> int:
 
 def _test(args) -> int:
     from .run import judge_and_report
-    return 0 if judge_and_report(_in_the_repo(args.problem).folder).verdict in ("Accepted", "Not started") else 1
+    problem = _in_the_repo(args.problem)
+    args.facts["problem"] = problem.slug
+    result = judge_and_report(problem.folder)
+    args.facts.update(verdict=result.verdict, passed=result.passed, total=result.total, failed_case=result.case or None,
+                      ms=result.milliseconds if result.accepted else None)
+    return 0 if result.verdict in ("Accepted", "Not started") else 1
 
 
 def _open(args) -> int:
     problem = _in_the_repo(args.problem)
+    args.facts["problem"] = problem.slug
     if shutil.which("code") is None:
         print(problem.folder)
         return 0
@@ -75,6 +102,7 @@ def _open(args) -> int:
 
 def _reset(args) -> int:
     problem = _in_the_repo(args.problem)
+    args.facts.update(problem=problem.slug, erased=False)
     if not problem.stub.exists():
         raise LookupError(f"{problem.title} has no starting file saved in {problem.stub.parent.relative_to(ROOT)}.")
     solution = problem.folder / "solution.py"
@@ -87,6 +115,7 @@ def _reset(args) -> int:
             print("Left as it is.")
             return 1
     solution.write_text(problem.stub.read_text())
+    args.facts["erased"] = True
     print(f"{problem.title} is back to its starting state.")
     return 0
 

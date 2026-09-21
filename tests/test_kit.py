@@ -398,3 +398,32 @@ def test_every_problem_in_the_repo_can_be_reset():
     for problem in all_problems():
         if problem.folder.exists():
             assert "raise NotImplementedError" in problem.stub.read_text(), problem.title
+
+
+# ---- the journal
+
+@pytest.fixture(autouse=True)
+def journal_file(tmp_path, monkeypatch):
+    """No test writes in the real journal."""
+    monkeypatch.setattr("leetkit.journal.PATH", tmp_path / "journal.jsonl")
+    return tmp_path / "journal.jsonl"
+
+
+def test_every_command_is_journalled_whatever_came_of_it(journal_file, tmp_path, monkeypatch):
+    from leetkit import cli
+    (tmp_path / "add").mkdir()
+    folder = problem(tmp_path / "add", "class Solution:\n    def add(self, a, b): return a - b", ADD)
+    real = cli._in_the_repo
+    added = type("P", (), {"slug": "add", "folder": folder, "title": "Add"})()
+    monkeypatch.setattr(cli, "_in_the_repo", lambda words: added if words == ["add"] else real(words))
+    assert cli.main(["test", "add"]) == 1
+    assert cli.main(["test", "no-such-problem-at-all"]) == 2
+    with pytest.raises(SystemExit):
+        cli.main(["list"])
+
+    lines = [json.loads(line) for line in journal_file.read_text().splitlines()]
+    assert [(line["command"], line["args"], line["exit"]) for line in lines] == [
+        ("test", ["add"], 1), ("test", ["no-such-problem-at-all"], 2), ("list", [], 2)]
+    assert lines[0]["verdict"] == "Wrong Answer" and (lines[0]["passed"], lines[0]["total"]) == (0, 1)
+    assert lines[0]["problem"] == "add" and lines[0]["failed_case"] == "small" and "at" in lines[0]
+    assert "No problem matches" in lines[1]["error"]
