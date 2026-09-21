@@ -8,7 +8,8 @@ A local judge for LeetCode problems, driven from the command line. Python 3.10+,
     cd leet-runner
     ./leet setup
 
-`setup` creates `.venv` and links `leet` into `~/.local/bin`. After it, `leet` runs from any directory.
+`setup` creates `.venv` (no pip, nothing downloaded) and links `leet` into `~/.local/bin`. After it, `leet` runs
+from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or add it.
 
 ## Usage
 
@@ -122,4 +123,4 @@ VS Code, optional. The workspace recommends the Python and Code Runner extension
       scaffold.py        builds a problem folder from LeetCode: python -m leetkit.scaffold <slug>
       statement.py       LeetCode HTML to Markdown
       stubs/             the empty solution.py of every problem, used by leet reset
-    tests/               kit tests: .venv/bin/python -m pytest
+    tests/               kit tests: ./leet setup --dev, then .venv/bin/python -m pytest

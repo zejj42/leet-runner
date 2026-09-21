@@ -42,7 +42,8 @@ def _run(argv: list[str], facts: dict) -> int:
     reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
     reset.add_argument("problem", nargs="+", help=_PROBLEM)
     reset.add_argument("-y", "--yes", action="store_true", help="do not ask first")
-    commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
+    setup = commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
+    setup.add_argument("--dev", action="store_true", help="also install pytest, to run the kit's own tests (needs pip)")
 
     args = parser.parse_args(argv)
     args.facts = facts                                      # what a command adds to its line in the journal
@@ -59,12 +60,17 @@ def _run(argv: list[str], facts: dict) -> int:
 def _setup(args) -> int:
     import sysconfig
     import venv
+    # Judging needs nothing but Python itself, so the environment is made without pip. That matters on Debian and
+    # Ubuntu, where pip-in-a-venv is a separate package (python3-venv) that a fresh machine does not have.
     environment = ROOT / ".venv"
-    if not (environment / "bin" / "python").exists():
-        print("Creating .venv ...")
-        venv.create(environment, with_pip=True)
     python = environment / "bin" / "python"
-    subprocess.check_call([str(python), "-m", "pip", "install", "-q", "-r", str(ROOT / "requirements.txt")])
+    if not python.exists():
+        print("Creating .venv ...")
+        venv.create(environment, with_pip=False)
+    if args.dev:
+        if subprocess.call([str(python), "-m", "pip", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
+            venv.create(environment, with_pip=True)         # adds pip to the environment that is already there
+        subprocess.check_call([str(python), "-m", "pip", "install", "-q", "-r", str(ROOT / "requirements.txt")])
     site = subprocess.check_output([str(python), "-c", "import sysconfig; print(sysconfig.get_paths()['purelib'])"], text=True).strip()
     # A .pth file: its first line puts this repo on the path, its second runs at every start of this Python.
     (Path(site) / "leetkit_autorun.pth").write_text(f"{ROOT}\nimport leetkit.autorun; leetkit.autorun.install()\n")
@@ -74,11 +80,10 @@ def _setup(args) -> int:
         link.unlink(missing_ok=True)
         link.symlink_to(ROOT / "leet")
     if str(link.parent) not in os.environ.get("PATH", "").split(os.pathsep):
-        print(f"{link.parent} is not on your PATH, so keep typing ./leet from this folder.")
+        print(f"{link.parent} is not on your PATH yet. Until it is, run ./leet from this folder.")
     from .colours import install
-    if not install():
-        print("VS Code's `code` command was not found, so the verdict in the Output panel stays uncoloured.")
-    print("Ready. Open a solution.py and press ▶ to judge it.")
+    install()                                               # only if VS Code is here; without it there is nothing to colour
+    print("Ready:  leet code two-sum   then   leet test two-sum")
     return 0
 
 
