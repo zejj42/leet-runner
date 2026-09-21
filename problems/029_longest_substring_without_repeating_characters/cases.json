@@ -18,6 +18,14 @@
     {"name": "two characters repeating", "args": ["abab"], "expected": 2},
     {"name": "longest run at the end", "args": ["aabcdef"], "expected": 6},
     {"name": "longest run at the start", "args": ["abcdefa"], "expected": 6},
+    {"name": "the string eghghhgg", "args": ["eghghhgg"], "expected": 3},
+    {"name": "the string substring", "args": ["substring"], "expected": 8},
+    {"name": "the string aabbcc", "args": ["aabbcc"], "expected": 2},
+    {"name": "the string abccba", "args": ["abccba"], "expected": 3},
+    {"name": "the string tmmzuxt", "args": ["tmmzuxt"], "expected": 5},
+    {"name": "a single space", "args": [" "], "expected": 1},
+    {"name": "the string dvdf", "args": ["dvdf"], "expected": 3},
+    {"name": "the string aab", "args": ["aab"], "expected": 2},
     {"name": "many distinct characters near max length", "file": "large_input.json.gz", "large": true}
   ]
 }
