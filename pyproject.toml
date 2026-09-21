@@ -1,0 +1,12 @@
+[project]
+name = "leet-practice"
+version = "0.1.0"
+description = "The LeetTracker list, to solve and test locally."
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["problems", "tests"]
+python_files = ["test_*.py"]
+# Every problem folder has a test_solution.py. Importing test files by path, not by module name,
+# is what lets them all share that name.
+addopts = "-q -p no:cacheprovider --import-mode=importlib"

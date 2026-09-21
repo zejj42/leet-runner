@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug this problem's tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${fileDirname}", "-q", "-x", "-p", "no:cacheprovider"],
+      "cwd": "${workspaceFolder}",
+      "justMyCode": true
+    },
+    {
+      "name": "Run this file",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}" }
+    }
+  ]
+}
