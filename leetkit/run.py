@@ -1,7 +1,7 @@
 """Judges one problem and reports it the way LeetCode does: one verdict with the count of cases passed, and,
 when it is not Accepted, the first case that went wrong and nothing after it.
 
-    python -m leetkit.run problems/001_two_sum [--stress]
+    python -m leetkit.run problems/001_two_sum
 
 This is what pressing ▶ on a solution.py shows, and what ./leet test prints.
 """
@@ -21,7 +21,6 @@ class Result:
     verdict: str              # Accepted, Wrong Answer, Time Limit Exceeded, Runtime Error, Not started
     passed: int = 0
     total: int = 0
-    held_back: int = 0        # stress cases not run
     case: str = ""            # the first case that went wrong
     details: str = ""
     milliseconds: int = 0
@@ -31,17 +30,17 @@ class Result:
         return self.verdict == "Accepted"
 
 
-def judge_folder(folder: Path, stress: bool = False) -> Result:
+def judge_folder(folder: Path, stress: bool = True) -> Result:
     """Runs the cases in order and stops at the first that does not pass, as LeetCode does."""
     spec = load_spec(folder)
     cases = [case for case in spec.cases if stress or not case.stress]
-    result = Result("Accepted", total=len(cases), held_back=len(spec.cases) - len(cases))
+    result = Result("Accepted", total=len(cases))
     started = time.perf_counter()
     for case in cases:
         try:
             run_case(spec, case, stress=stress)
         except NotStarted:
-            return Result("Not started", total=len(cases), held_back=result.held_back)
+            return Result("Not started", total=len(cases))
         except WrongAnswer as wrong:
             result.verdict, result.case, result.details = wrong.verdict, case.name, str(wrong)
             break
@@ -81,12 +80,10 @@ def one_line(result: Result) -> str:
 
 
 def report(title: str, result: Result) -> str:
-    lines = ["", _paint(title, "1"), "", one_line(result)]
+    lines = [f"{_paint(title, '1')}   {one_line(result)}"]
     if result.details:
         lines += ["", _paint(f"  {result.case}", "2"), result.details]
-    if result.accepted and result.held_back:
-        lines += ["", _paint(f"{result.held_back} stress case{'s' if result.held_back != 1 else ''} not run: ./leet test --stress", "2")]
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines)
 
 
 def title_of(folder: Path) -> str:
@@ -114,8 +111,8 @@ def remember(folder: Path, result: Result) -> None:
     path.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n")
 
 
-def judge_and_report(folder: Path, stress: bool = False) -> Result:
-    result = judge_folder(folder, stress=stress)
+def judge_and_report(folder: Path) -> Result:
+    result = judge_folder(folder)
     print(report(title_of(folder), result))
     remember(folder, result)
     return result
@@ -124,7 +121,7 @@ def judge_and_report(folder: Path, stress: bool = False) -> Result:
 def main(argv: list[str]) -> int:
     folder = Path(argv[0]).resolve()
     folder = folder.parent if folder.is_file() else folder
-    return 0 if judge_and_report(folder, stress="--stress" in argv).verdict in ("Accepted", "Not started") else 1
+    return 0 if judge_and_report(folder).verdict in ("Accepted", "Not started") else 1
 
 
 if __name__ == "__main__":

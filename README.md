@@ -18,7 +18,7 @@ The Code Runner extension's ▶ works too: the workspace settings point it at th
     ./leet new 2           create problem 2's folder from LeetCode (number, lc904, slug, or part of the title)
     ./leet list            how each problem stands        --all for the whole list
     ./leet open 2          open its statement and solution in VS Code
-    ./leet test 2 --stress the same judging from the terminal, here with the large cases too
+    ./leet test 2          the same judging from the terminal
     ./leet test            everything you have started
 
 The Testing panel (the flask icon) also lists every case of every problem.
@@ -49,7 +49,7 @@ One line in `cases.json`:
 
 `"compare"` decides how an answer is judged: `exact`, `unordered` (any order), `unordered_nested`
 (any order inside and out), `float`, or `any_of` (expected lists every right answer). Add `"stress": true`
-to a case that should only run with `--stress`, and `"file": "big.json"` to keep large data out of the way.
+to a large, slow case (the Testing panel leaves those out unless pytest gets `--stress`), and `"file": "big.json"` to keep large data out of the way.
 Linked lists and trees are written LeetCode's way, `[1, 2, 3]` and `[1, null, 2]`. If a problem has many
 right answers, a `check.py` beside it with `check(args, result, expected)` decides. `leetkit/judge.py` has the details.
 

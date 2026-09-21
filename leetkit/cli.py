@@ -25,7 +25,6 @@ def main(argv: list[str] | None = None) -> int:
 
     test = commands.add_parser("test", help="run a problem's tests (or every problem's)")
     test.add_argument("problem", nargs="?", help="leave out to test everything you have started")
-    test.add_argument("--stress", action="store_true", help="also run the large, slow cases")
 
     listing = commands.add_parser("list", help="what you have, and how it stands")
     listing.add_argument("--all", action="store_true", help="the whole list, including problems without a folder")
@@ -77,7 +76,7 @@ def _test(args) -> int:
         problem = find(args.problem)
         if not problem.folder.exists():
             raise LookupError(f"{problem.title} has no folder yet. Create it with: ./leet new {args.problem}")
-        return 0 if judge_and_report(problem.folder, stress=args.stress).verdict in ("Accepted", "Not started") else 1
+        return 0 if judge_and_report(problem.folder).verdict in ("Accepted", "Not started") else 1
 
     problems = [p for p in all_problems() if p.folder.exists()]
     if not problems:
@@ -85,7 +84,7 @@ def _test(args) -> int:
     print()
     failed = 0
     for problem in problems:                                 # everything you have started: one line each
-        result = judge_folder(problem.folder, stress=args.stress)
+        result = judge_folder(problem.folder)
         remember(problem.folder, result)
         failed += result.verdict not in ("Accepted", "Not started")
         print(f"  {problem.label}  {problem.title:<46} {one_line(result)}")
