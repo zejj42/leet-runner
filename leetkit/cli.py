@@ -75,7 +75,8 @@ def _setup(args) -> int:
         link.unlink(missing_ok=True)
         link.symlink_to(ROOT / "leet")
     if str(link.parent) not in os.environ.get("PATH", "").split(os.pathsep):
-        print(f"{link.parent} is not on your PATH yet. Until it is, run ./leet from this folder.")
+        print(f"The leet command is now in {link.parent}, a folder your shell does not search for commands yet (it is\n"
+              "not on your PATH). On Ubuntu, logging out and back in adds it. Until then, type ./leet from this folder.\n")
     from .colours import install
     install()                                               # only if VS Code is here; without it there is nothing to colour
     print("Ready:  leet code two-sum   then   leet test two-sum")
