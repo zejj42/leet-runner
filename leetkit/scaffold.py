@@ -42,20 +42,25 @@ def scaffold(problem: Problem, force: bool = False) -> Path:
     meta = json.loads(question.get("metaData") or "{}")
     folder.mkdir(parents=True, exist_ok=True)
 
+    # Always refreshed: what comes from LeetCode and from the kit. Never overwritten: what you may have written in.
     (folder / "README.md").write_text(_readme(problem, question))
-    (folder / "cases.json").write_text(format_cases(_cases(question, meta)))
     (folder / "test_solution.py").write_text(_TEST_FILE)
-    if not (folder / "solution.py").exists():                  # with --force, everything but your code is refreshed
-        (folder / "solution.py").write_text(_stub(problem, question, meta))
+    for name, content in (("solution.py", _stub(problem, question, meta)),
+                          ("cases.json", format_cases(_cases(question, meta))),
+                          ("scratch.py", _scratch(question, meta))):
+        if content and not (folder / name).exists():
+            (folder / name).write_text(content)
     return folder
 
 
 # ---- README
 
 def _readme(problem: Problem, question: dict) -> str:
+    level = question["difficulty"].lower()
+    where = " · ".join(part for part in (problem.topic, problem.list, problem.section) if part)
     lines = [f"# {question['questionFrontendId']}. {question['title']}", "",
-             f"{question['difficulty']} · {problem.topic} · {problem.list}"
-             + (f" · {problem.section}" if problem.section else ""), "", f"<{problem.url}>", ""]
+             f'<span class="badge {level}">{question["difficulty"]}</span> <span class="where">{where}</span>', "",
+             f"<{problem.url}>", ""]
     if question.get("isPaidOnly") or not question.get("content"):
         lines += ["This one is for LeetCode subscribers, so its statement could not be fetched. Paste it here.", ""]
     else:
@@ -132,8 +137,7 @@ def _stub(problem: Problem, question: dict, meta: dict) -> str:
         header.append(f"from leetkit import {', '.join(uses_nodes)}")
     while header and not header[-1]:
         header.pop()
-    body = "\n".join(header) + "\n\n\n" + snippet.strip() + "\n"
-    return body + _scratch(question, meta, uses_nodes)
+    return "\n".join(header) + "\n\n\n" + snippet.strip() + "\n"
 
 
 def _drop_leading_comments(code: str) -> str:
@@ -162,14 +166,23 @@ def _fill_bodies(code: str) -> str:
     return "\n".join(out)
 
 
-def _scratch(question: dict, meta: dict, uses_nodes: list) -> str:
-    """A place to call your function by hand and print, for when you want to look before you test."""
+def _scratch(question: dict, meta: dict) -> str:
+    """scratch.py: a place to call your code by hand and print, kept out of solution.py."""
     examples = question.get("exampleTestcaseList") or []
-    if "classname" in meta or not examples or uses_nodes:
+    if "classname" in meta or not examples:
         return ""
-    arguments = ", ".join(line.strip() for line in examples[0].split("\n"))
-    arguments = arguments.replace("true", "True").replace("false", "False").replace("null", "None")
-    return f'\n\nif __name__ == "__main__":\n    print(Solution().{meta.get("name", "solve")}({arguments}))\n'
+    params = meta.get("params", [])
+    values = [line.strip().replace("true", "True").replace("false", "False").replace("null", "None")
+              for line in examples[0].split("\n")]
+    builders = {"ListNode": "linked_list_from_list", "TreeNode": "tree_from_list"}
+    needed = sorted({builders[p["type"]] for p in params if p.get("type") in builders})
+    arguments = ", ".join(f"{builders[p['type']]}({value})" if p.get("type") in builders else value
+                          for p, value in zip(params, values))
+    lines = ['"""Call your solution by hand here and print what you like. Run it with F5 > "Run this file"."""', ""]
+    if needed:
+        lines.append(f"from leetkit import {', '.join(needed)}")
+    lines += ["from solution import Solution", "", f"print(Solution().{meta.get('name', 'solve')}({arguments}))", ""]
+    return "\n".join(lines)
 
 
 _TEST_FILE = '''"""The cases live in cases.json, next to this file. Add your own there, or write extra tests below."""

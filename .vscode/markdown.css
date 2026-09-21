@@ -1,0 +1,31 @@
+/* Colours for the problem statements in VS Code's Markdown preview (⇧⌘V). Follows the light or dark theme.
+   The palette is LeetTracker's: green, amber and red for difficulty, gold for what is folded away. */
+
+body { --easy: #1f8a4c; --medium: #c97a0a; --hard: #d8321f; --gold: #b8901c; --ink: #2f6db5; --soft: rgba(127, 127, 127, 0.12); }
+body.vscode-dark, body.vscode-high-contrast { --easy: #3dc97a; --medium: #e8a33d; --hard: #f0644e; --gold: #d4af37; --ink: #6aa9ee; }
+
+h1 { border-bottom: none; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.3em; }
+
+.badge { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; color: #fff; }
+.badge.easy { background: var(--easy); }
+.badge.medium { background: var(--medium); }
+.badge.hard { background: var(--hard); }
+.where { margin-left: 6px; opacity: 0.6; font-size: 0.85em; }
+
+/* Names and values from the statement: `nums`, `2 <= n <= 10^4`. */
+code { color: var(--ink); background: var(--soft); border-radius: 4px; padding: 1px 5px; }
+pre code { color: inherit; background: none; padding: 0; }
+
+/* Examples. */
+blockquote { border-left: 3px solid var(--easy); background: var(--soft); border-radius: 0 8px 8px 0; padding: 8px 14px; margin: 8px 0 18px; }
+blockquote strong { color: var(--easy); font-weight: 700; }
+blockquote code { background: none; padding: 0; }
+
+/* "Example 1:", "Constraints:" */
+p > strong:only-child { color: var(--gold); text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.08em; }
+
+/* The follow-up and the hints stay shut until asked for. */
+details { border: 1px solid var(--gold); border-radius: 8px; padding: 6px 12px; margin: 8px 0; }
+summary { color: var(--gold); font-weight: 700; cursor: pointer; }
+
+a { color: var(--ink); }

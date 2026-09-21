@@ -12,6 +12,7 @@ import pytest
 from leetkit import ListNode, TreeNode, linked_list_from_list, linked_list_to_list, tree_from_list, tree_to_list
 from leetkit.catalog import all_problems, find
 from leetkit.judge import NotStarted, WrongAnswer, load_spec, run_case
+from leetkit import scaffold as scaffolding
 from leetkit.scaffold import _fill_bodies, format_cases
 from leetkit.statement import example_outputs, split_follow_up, to_markdown
 
@@ -210,7 +211,8 @@ def test_statements_become_readable_markdown_with_the_follow_up_set_aside():
             "<strong>Follow-up:&nbsp;</strong>Can you do better?")
     statement, follow_up = split_follow_up(to_markdown(html))
     assert "Given `nums`, return *it*." in statement
-    assert "```\nInput: nums = [1]\nOutput: [1]\n```" in statement
+    assert "> **Input:** `nums = [1]`" in statement and "> **Output:** `[1]`" in statement      # an example, as a quote
+    assert "```" not in statement
     assert "`1 <= n <= 10^4`" in statement
     assert "Follow" not in statement and follow_up == "Can you do better?"
     assert example_outputs(html) == ["[1]"]
@@ -240,3 +242,41 @@ def test_problems_can_all_name_their_test_file_the_same(tmp_path):
                          capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(root)})
     assert run.returncode == 0, run.stdout + run.stderr
     assert run.stdout.strip().startswith("..")           # quiet mode: one dot per passing case, and there are two
+
+
+def test_a_block_that_is_not_an_example_stays_a_code_block():
+    assert "```\n  1\n / \\\n2   3\n```" in to_markdown("<pre>\n  1\n / \\\n2   3\n</pre>")
+
+
+QUESTION = {"questionFrontendId": "1", "title": "Two Sum", "difficulty": "Easy", "isPaidOnly": False, "hints": ["Think."],
+            "content": "<p>Add.</p><pre>\n<strong>Input:</strong> nums = [1,2], target = 3\n<strong>Output:</strong> [0,1]\n</pre>",
+            "metaData": json.dumps({"name": "twoSum", "params": [{"name": "nums", "type": "integer[]"}, {"name": "target", "type": "integer"}],
+                                    "return": {"type": "integer[]"}}),
+            "exampleTestcaseList": ["[1,2]\n3"],
+            "codeSnippets": [{"langSlug": "python3", "code": "class Solution:\n    def twoSum(self, nums: list[int], target: int) -> list[int]:\n        "}]}
+
+
+def test_scaffolding_never_overwrites_what_you_may_have_written(tmp_path, monkeypatch):
+    monkeypatch.setattr(scaffolding, "fetch", lambda slug: QUESTION)
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    two_sum = find("1")
+    folder = scaffolding.scaffold(two_sum)
+
+    solution = (folder / "solution.py").read_text()
+    assert "__main__" not in solution and "raise NotImplementedError" in solution      # the hand-run block lives elsewhere
+    assert "from solution import Solution" in (folder / "scratch.py").read_text()
+    assert json.loads((folder / "cases.json").read_text())["cases"][0]["expected"] == [0, 1]
+    assert 'class="badge easy"' in (folder / "README.md").read_text()
+
+    with pytest.raises(FileExistsError):
+        scaffolding.scaffold(two_sum)
+
+    (folder / "solution.py").write_text("mine")
+    (folder / "cases.json").write_text('{"mine": true}')
+    (folder / "scratch.py").write_text("mine too")
+    (folder / "README.md").write_text("stale")
+    scaffolding.scaffold(two_sum, force=True)
+    assert (folder / "solution.py").read_text() == "mine"
+    assert (folder / "cases.json").read_text() == '{"mine": true}'
+    assert (folder / "scratch.py").read_text() == "mine too"
+    assert (folder / "README.md").read_text() != "stale"                                # only what comes from LeetCode is refreshed

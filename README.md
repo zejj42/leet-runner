@@ -26,8 +26,12 @@ at your breakpoints; "Run this file" runs the little `__main__` block at the bot
     problems/001_two_sum/
       README.md          the statement; the follow-up and LeetCode's hints are folded shut
       solution.py        yours. Never overwritten by any command.
-      cases.json         the test cases, one per line. Add your own.
+      cases.json         the test cases, one per line. Add your own. Never overwritten either.
+      scratch.py         call your solution by hand and print; F5 > "Run this file"
       test_solution.py   turns cases.json into tests; extra tests of your own go below
+
+Open a README's preview with ⇧⌘V: `.vscode/markdown.css` colours it, in light and dark.
+`./leet new 2 --force` refreshes a problem's README and test file and nothing else.
 
 A solution that still raises `NotImplementedError` counts as "not started": its tests are skipped, not failed.
 

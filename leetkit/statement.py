@@ -95,9 +95,33 @@ def to_markdown(html: str) -> str:
             stripped = line.strip()
             nested = re.match(r"(\s*)(- |\d+\. )", line.replace("\t", ""))
             lines.append((nested.group(1) if nested and stripped else "") + re.sub(r"\s+", " ", stripped))
-    text = "\n".join(lines)
+    text = _examples_as_blocks("\n".join(lines))
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
+
+
+_LABEL = re.compile(r"^(Input|Output|Explanation|Note):\s*(.*)$")
+
+
+def _examples_as_blocks(text: str) -> str:
+    """LeetCode's examples come as a grey block of "Input: / Output: / Explanation:" lines. As a quote with bold
+    labels and the values as code they can be styled (see .vscode/markdown.css) and read better even unstyled.
+    Any other fenced block (a drawing, a table) is left exactly as it is."""
+    def convert(match: re.Match) -> str:
+        rows = [row for row in match.group(1).split("\n") if row.strip()]
+        if not rows or not _LABEL.match(rows[0]):
+            return match.group(0)
+        out: list[str] = []
+        for row in rows:
+            labelled = _LABEL.match(row)
+            if labelled and labelled.group(1) in ("Input", "Output"):
+                out.append(f"> **{labelled.group(1)}:** `{labelled.group(2)}`  ")
+            elif labelled:
+                out.append(f"> **{labelled.group(1)}:** {labelled.group(2)}  ")
+            else:
+                out.append(f"> {row.strip()}  ")                     # an explanation that runs on
+        return "\n".join(out) + "\n"
+    return re.sub(r"```\n(.*?)\n```\n", convert, text, flags=re.S)
 
 
 def split_follow_up(markdown: str) -> tuple[str, str]:
