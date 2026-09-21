@@ -1,4 +1,4 @@
-"""Creates a problem's folder: the statement, a stub to write in, the example cases, and a test file.
+"""Creates a problem's folder: the statement, a stub to write in, and the example cases.
 
 Everything comes from LeetCode's public API. Nothing here ever writes a solution.
 """
@@ -12,10 +12,10 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .catalog import Problem
-from .statement import example_outputs, split_follow_up, to_markdown
+from .statement import example_outputs, to_markdown, without_follow_up
 
 _QUERY = """query q($titleSlug: String!) { question(titleSlug: $titleSlug) {
-  questionFrontendId title difficulty isPaidOnly content hints metaData exampleTestcaseList
+  questionFrontendId title difficulty isPaidOnly content metaData exampleTestcaseList
   codeSnippets { langSlug code } } }"""
 
 _STUB_BODY = "raise NotImplementedError  # your code goes here"
@@ -34,17 +34,14 @@ def fetch(slug: str) -> dict:
     return question
 
 
-def scaffold(problem: Problem, force: bool = False) -> Path:
+def scaffold(problem: Problem) -> Path:
+    """Writes what the folder does not have yet. What is there, written by hand, is never overwritten: a solution,
+    cases, and the README, whose statement gets reworded so that it is this repo's own."""
     folder = problem.folder
-    if (folder / "solution.py").exists() and not force:
-        raise FileExistsError(f"{folder.name} already exists. Your solution.py is never overwritten.")
     question = fetch(problem.slug)
     meta = json.loads(question.get("metaData") or "{}")
     folder.mkdir(parents=True, exist_ok=True)
 
-    # Always refreshed: what comes from the kit. Never overwritten: what has been written in by hand, and that
-    # includes the README, whose statement gets reworded so that it is this repo's own.
-    (folder / "test_solution.py").write_text(_TEST_FILE)
     stub = _stub(problem, question, meta)
     problem.stub.parent.mkdir(parents=True, exist_ok=True)
     problem.stub.write_text(stub)                               # what `leet reset` puts back
@@ -67,8 +64,7 @@ def _readme(problem: Problem, question: dict) -> str:
     if question.get("isPaidOnly") or not question.get("content"):
         lines += ["This one is for LeetCode subscribers, so its statement could not be fetched. Paste it here.", ""]
     else:
-        statement, _follow_up = split_follow_up(to_markdown(question["content"]))   # the follow-up names the target
-        lines += [statement, ""]
+        lines += [without_follow_up(to_markdown(question["content"])), ""]
     return "\n".join(lines)                                     # LeetCode's hints are left out too
 
 
@@ -76,6 +72,10 @@ def _readme(problem: Problem, question: dict) -> str:
 
 def _cases(question: dict, meta: dict) -> dict:
     params = [{"name": p["name"], "type": p["type"]} for p in meta.get("params", [])]
+    snippet = next((s["code"] for s in question.get("codeSnippets") or [] if s["langSlug"] == "python3"), "")
+    for before, param in zip(params, params[1:]):               # the cycle problems: pos shapes the list, and is not passed
+        if param["name"] == "pos" and before["type"] == "ListNode" and not re.search(r"def \w+\([^)]*\bpos\b", snippet):
+            param["type"] = "cycle position"
     outputs = example_outputs(question.get("content") or "")
     cases = []
     for index, raw in enumerate(question.get("exampleTestcaseList") or []):
@@ -129,7 +129,7 @@ def _stub(problem: Problem, question: dict, meta: dict) -> str:
     snippet = _fill_bodies(_drop_leading_comments(snippet))
 
     header = [f'"""{question["questionFrontendId"]}. {question["title"]}  ({question["difficulty"]})', problem.url, "",
-              "Press ▶ (Run Python File) to test this file.", '"""', ""]
+              "Press ▶ to judge this file.", '"""', ""]
     typing_names = [name for name in ("List", "Optional", "Dict", "Set", "Tuple") if re.search(rf"\b{name}\[", snippet)]
     if typing_names:
         header.append(f"from typing import {', '.join(typing_names)}")
@@ -149,32 +149,37 @@ def _drop_leading_comments(code: str) -> str:
 
 
 def _fill_bodies(code: str) -> str:
-    """Every method LeetCode left empty gets a body that says "not started" to the judge."""
+    """Every method LeetCode left empty gets a body that says "not started" to the judge. A body that is only
+    LeetCode's note ("Do not return anything...") is empty too: the note stays, as the docstring it is."""
     lines = [line.rstrip() for line in code.rstrip().split("\n")]
     out: list[str] = []
-    for index, line in enumerate(lines):
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        index += 1
         if not line and out and not out[-1]:
             continue
         out.append(line)
-        if re.match(r"\s*def .*:$", line):
-            indent = len(line) - len(line.lstrip())
-            following = next((later for later in lines[index + 1:] if later.strip()), None)
-            if following is None or len(following) - len(following.lstrip()) <= indent:
-                out.append(" " * (indent + 4) + _STUB_BODY)
+        if not re.match(r"\s*def .*:$", line):
+            continue
+        indent = len(line) - len(line.lstrip())
+        body = []
+        while index + len(body) < len(lines):
+            later = lines[index + len(body)]
+            if later.strip() and len(later) - len(later.lstrip()) <= indent:
+                break
+            body.append(later)
+        text = "\n".join(body).strip()
+        if text and not re.fullmatch(r'"""(?:(?!""").)*"""', text, flags=re.S):
+            continue                                            # it has code of its own: leave it be
+        out += [later for later in body if later.strip()] + [" " * (indent + 4) + _STUB_BODY, ""]
+        index += len(body)
     while out and not out[-1]:
         out.pop()
     return "\n".join(out)
 
 
-_TEST_FILE = '''"""The cases live in cases.json, next to this file. Add your own there, or write extra tests below."""
-
-from leetkit import problem_tests
-
-test_case = problem_tests(__file__)
-'''
-
-
-if __name__ == "__main__":                                  # python -m leetkit.scaffold two-sum [--force]
+if __name__ == "__main__":                                  # python -m leetkit.scaffold two-sum
     import sys
     from .catalog import find
-    print(scaffold(find(sys.argv[1]), force="--force" in sys.argv))
+    print(scaffold(find(sys.argv[1])))

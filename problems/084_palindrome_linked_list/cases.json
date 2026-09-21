@@ -1,0 +1,25 @@
+{
+  "function": "isPalindrome",
+  "params": [
+    {"name": "head", "type": "ListNode"}
+  ],
+  "returns": "boolean",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[1, 2, 2, 1]], "expected": true},
+    {"name": "example 2", "args": [[1, 2]], "expected": false},
+    {"name": "single node", "args": [[5]], "expected": true},
+    {"name": "two equal", "args": [[3, 3]], "expected": true},
+    {"name": "odd length", "args": [[1, 2, 1]], "expected": true},
+    {"name": "odd length, longer", "args": [[1, 2, 3, 2, 1]], "expected": true},
+    {"name": "even length, longer", "args": [[4, 0, 9, 9, 0, 4]], "expected": true},
+    {"name": "ends differ", "args": [[1, 2, 3, 2, 2]], "expected": false},
+    {"name": "middle pair differs", "args": [[1, 2, 3, 4, 2, 1]], "expected": false},
+    {"name": "only the second node differs", "args": [[1, 0, 1, 1]], "expected": false},
+    {"name": "all the same", "args": [[7, 7, 7, 7, 7]], "expected": true},
+    {"name": "zeros and a one", "args": [[0, 0, 1]], "expected": false},
+    {"name": "three nodes, not one", "args": [[1, 2, 3]], "expected": false},
+    {"name": "largest list, a palindrome", "file": "large_palindrome.json", "large": true},
+    {"name": "largest list, one node off", "file": "large_almost.json", "large": true}
+  ]
+}

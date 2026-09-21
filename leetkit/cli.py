@@ -77,7 +77,7 @@ def _setup(args) -> int:
     from .colours import install
     if not install():
         print("VS Code's `code` command was not found, so the verdict in the Output panel stays uncoloured.")
-    print("Ready. Open a solution.py and press ▶ (Run Python File) to test it.")
+    print("Ready. Open a solution.py and press ▶ to judge it.")
     return 0
 
 

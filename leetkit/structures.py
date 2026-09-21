@@ -37,10 +37,26 @@ def linked_list_from_list(values: Optional[list]) -> Optional[ListNode]:
     return head
 
 
-def linked_list_to_list(head: Optional[ListNode], limit: int = 100_000) -> list:
-    """Stops after `limit` nodes, so a list that loops back on itself cannot hang the judge."""
-    values, node = [], head
+def tie_tail_to(head: Optional[ListNode], position: int) -> None:
+    """Makes the list a cycle: its last node points back at the node at `position`. -1 leaves it alone."""
+    if head is None or position is None or position < 0:
+        return
+    nodes = []
+    node = head
+    while node is not None:
+        nodes.append(node)
+        node = node.next
+    nodes[-1].next = nodes[position]
+
+
+def linked_list_to_list(head: Optional[ListNode], limit: int = 1_000_000) -> list:
+    """A list that loops back on itself cannot hang the judge: it is read up to the loop, and ends with a note
+    saying where it goes back to. `limit` is a last resort against a list that is simply endless."""
+    values, node, seen = [], head, {}
     while node is not None and len(values) < limit:
+        if id(node) in seen:
+            return values + [f"...and back to index {seen[id(node)]}, in a loop"]
+        seen[id(node)] = len(values)
         values.append(node.val)
         node = node.next
     return values

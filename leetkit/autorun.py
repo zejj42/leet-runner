@@ -23,14 +23,10 @@ def install() -> None:
     _installed = True
     try:
         script = Path(sys.argv[0]) if sys.argv and sys.argv[0] else None
-        # Code Runner runs a selection from a temporary copy with this name; it still means "judge this problem".
-        if script is None or script.name not in ("solution.py", "tempCodeRunnerFile.py"):
+        if script is None or script.name != "solution.py":
             return
         folder = script.resolve().parent
         if (folder / "cases.json").exists():
-            if sys.stdout.isatty():             # wipe the long command ▶ typed, scrollback too: only the verdict stays
-                sys.stdout.write("\033[H\033[2J\033[3J")
-                sys.stdout.flush()
             atexit.register(_judge, folder)
     except Exception:
         pass                                   # never get in the way of Python starting

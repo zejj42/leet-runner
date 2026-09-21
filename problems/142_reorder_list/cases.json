@@ -1,0 +1,23 @@
+{
+  "function": "reorderList",
+  "params": [
+    {"name": "head", "type": "ListNode"}
+  ],
+  "returns": "void",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[1, 2, 3, 4]], "expected": [1, 4, 2, 3]},
+    {"name": "example 2", "args": [[1, 2, 3, 4, 5]], "expected": [1, 5, 2, 4, 3]},
+    {"name": "single node", "args": [[1]], "expected": [1]},
+    {"name": "two nodes", "args": [[1, 2]], "expected": [1, 2]},
+    {"name": "three nodes", "args": [[1, 2, 3]], "expected": [1, 3, 2]},
+    {"name": "six nodes", "args": [[1, 2, 3, 4, 5, 6]], "expected": [1, 6, 2, 5, 3, 4]},
+    {"name": "seven nodes", "args": [[1, 2, 3, 4, 5, 6, 7]], "expected": [1, 7, 2, 6, 3, 5, 4]},
+    {"name": "equal values", "args": [[5, 5, 5, 5]], "expected": [5, 5, 5, 5]},
+    {"name": "repeating values", "args": [[1, 2, 1, 2, 1]], "expected": [1, 1, 2, 2, 1]},
+    {"name": "descending", "args": [[9, 8, 7, 6, 5, 4, 3, 2]], "expected": [9, 2, 8, 3, 7, 4, 6, 5]},
+    {"name": "large values", "args": [[1000, 1, 999, 2, 998]], "expected": [1000, 998, 1, 2, 999]},
+    {"name": "largest list", "file": "large_list.json", "large": true}
+  ],
+  "output_param": 0
+}

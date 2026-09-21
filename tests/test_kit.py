@@ -14,7 +14,7 @@ from leetkit.catalog import all_problems, find
 from leetkit.judge import NotStarted, WrongAnswer, load_spec, run_case
 from leetkit import scaffold as scaffolding
 from leetkit.scaffold import _fill_bodies, format_cases
-from leetkit.statement import example_outputs, split_follow_up, to_markdown
+from leetkit.statement import example_outputs, to_markdown, without_follow_up
 
 
 def problem(tmp_path: Path, solution: str, spec: dict, check: str | None = None) -> Path:
@@ -150,9 +150,9 @@ def test_class_problems_replay_their_operations(tmp_path):
 
 def test_a_big_case_can_live_in_its_own_file(tmp_path):
     (tmp_path / "big.json").write_text(json.dumps({"args": [40, 2], "expected": 42}))
-    spec = {**ADD, "cases": [{"name": "big", "file": "big.json", "stress": True}]}
+    spec = {**ADD, "cases": [{"name": "big", "file": "big.json", "large": True}]}
     loaded = load_spec(problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", spec))
-    assert loaded.cases[0].stress and loaded.cases[0].args == [40, 2]
+    assert loaded.cases[0].large and loaded.cases[0].args == [40, 2]
     run_case(loaded, loaded.cases[0])
 
 
@@ -169,7 +169,9 @@ def test_list_and_tree_round_trips():
 def test_a_list_that_loops_cannot_hang_the_judge():
     head = linked_list_from_list([1, 2])
     head.next.next = head
-    assert len(linked_list_to_list(head, limit=50)) == 50
+    assert linked_list_to_list(head) == [1, 2, "...and back to index 0, in a loop"]
+    endless = linked_list_from_list(list(range(80)))
+    assert len(linked_list_to_list(endless, limit=50)) == 50
 
 
 # ---- the catalog
@@ -181,8 +183,7 @@ def test_the_whole_list_is_here_and_every_folder_name_is_unique():
     assert len({p.slug for p in problems}) == len(problems)
 
 
-@pytest.mark.parametrize("reference", ["1", "001", "two-sum", "two sum", "Two Sum", "problems/001_two_sum",
-                                       "problems/001_two_sum/solution.py", "001_two_sum"])
+@pytest.mark.parametrize("reference", ["1", "001", "two-sum", "two sum", "Two Sum", "TWO-SUM", "001_two_sum"])
 def test_a_problem_can_be_named_many_ways(reference):
     assert find(reference).slug == "two-sum"
 
@@ -208,16 +209,16 @@ def test_empty_methods_get_a_not_started_body_and_written_ones_are_left_alone():
     compile(filled, "stub", "exec")
 
 
-def test_statements_become_readable_markdown_with_the_follow_up_set_aside():
+def test_statements_become_readable_markdown_without_the_follow_up():
     html = ("<p>Given <code>nums</code>, return <em>it</em>.</p><pre>\n<strong>Input:</strong> nums = [1]\n"
             "<strong>Output:</strong> [1]\n</pre><ul>\n\t<li><code>1 &lt;= n &lt;= 10<sup>4</sup></code></li></ul>"
             "<strong>Follow-up:&nbsp;</strong>Can you do better?")
-    statement, follow_up = split_follow_up(to_markdown(html))
+    statement = without_follow_up(to_markdown(html))
     assert "Given `nums`, return *it*." in statement
     assert "> **Input:** `nums = [1]`" in statement and "> **Output:** `[1]`" in statement      # an example, as a quote
     assert "```" not in statement
     assert "`1 <= n <= 10^4`" in statement
-    assert "Follow" not in statement and follow_up == "Can you do better?"
+    assert "Follow" not in statement and "do better" not in statement
     assert example_outputs(html) == ["[1]"]
 
 
@@ -227,24 +228,6 @@ def test_cases_are_written_one_per_line_and_read_back_the_same():
     text = format_cases(spec)
     assert json.loads(text) == spec
     assert text.count("\n") == 12
-
-
-# ---- many problems side by side
-
-def test_problems_can_all_name_their_test_file_the_same(tmp_path):
-    """Every folder has a test_solution.py. Collected together they must not be mistaken for one another."""
-    root = Path(__file__).resolve().parent.parent
-    for name, answer in (("001_first", 1), ("002_second", 2)):
-        folder = tmp_path / name
-        folder.mkdir()
-        (folder / "solution.py").write_text(f"class Solution:\n    def f(self): return {answer}\n")
-        (folder / "cases.json").write_text(json.dumps({"function": "f", "params": [], "returns": "integer",
-                                                       "cases": [{"args": [], "expected": answer}]}))
-        (folder / "test_solution.py").write_text("from leetkit import problem_tests\n\ntest_case = problem_tests(__file__)\n")
-    run = subprocess.run([sys.executable, "-m", "pytest", str(tmp_path), "-c", str(root / "pyproject.toml"), "-q"],
-                         capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(root)})
-    assert run.returncode == 0, run.stdout + run.stderr
-    assert run.stdout.strip().startswith("..")           # quiet mode: one dot per passing case, and there are two
 
 
 def test_a_block_that_is_not_an_example_stays_a_code_block():
@@ -274,18 +257,18 @@ def test_scaffolding_never_overwrites_what_you_may_have_written(tmp_path, monkey
     readme = (folder / "README.md").read_text()
     assert 'class="badge easy"' in readme and "Hint" not in readme and "Follow" not in readme
 
-    with pytest.raises(FileExistsError):
-        scaffolding.scaffold(two_sum)
-
     (folder / "solution.py").write_text("mine")
     (folder / "cases.json").write_text('{"mine": true}')
     (folder / "README.md").write_text("reworded")
-    (folder / "test_solution.py").write_text("stale")
-    scaffolding.scaffold(two_sum, force=True)
+    (folder / "large_input.json").write_text("mine as well")
+    two_sum.stub.write_text("stale")
+    scaffolding.scaffold(two_sum)                                                       # a second time: fills in, never replaces
     assert (folder / "solution.py").read_text() == "mine"
     assert (folder / "cases.json").read_text() == '{"mine": true}'
     assert (folder / "README.md").read_text() == "reworded"
-    assert (folder / "test_solution.py").read_text() != "stale"                         # only what comes from the kit is refreshed
+    assert (folder / "large_input.json").read_text() == "mine as well"
+    assert "raise NotImplementedError" in two_sum.stub.read_text()                      # only what comes from the kit is refreshed
+    assert sorted(path.name for path in folder.iterdir()) == ["README.md", "cases.json", "large_input.json", "solution.py"]
 
 
 # ---- pressing ▶ on a solution.py
@@ -329,22 +312,10 @@ def test_other_files_are_left_alone(tmp_path):
     assert "hooks 0" in run.stdout, run.stdout + run.stderr
 
 
-def test_a_selection_run_by_code_runner_still_judges_the_problem(tmp_path):
-    """Code Runner runs selected text from tempCodeRunnerFile.py in the same folder. The judge reads solution.py itself."""
-    root = Path(__file__).resolve().parent.parent
-    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", ADD)
-    (folder / "tempCodeRunnerFile.py").write_text("x = 1\n")
-    starter = ("import sys, runpy; sys.argv = [sys.argv[1]]; import leetkit.autorun as a; a._installed = False; a.install(); "
-               "runpy.run_path(sys.argv[0], run_name='__main__')")
-    run = subprocess.run([sys.executable, "-c", starter, str(folder / "tempCodeRunnerFile.py")], capture_output=True, text=True,
-                         env={**os.environ, "PYTHONPATH": str(root)})
-    assert "Accepted   1 / 1 testcases passed" in run.stdout, run.stdout + run.stderr
-
-
 def test_judging_stops_at_the_first_case_that_fails_and_counts_what_passed_before_it(tmp_path):
     from leetkit.run import judge_folder
     spec = {**ADD, "cases": [{"name": "one", "args": [1, 1], "expected": 2}, {"name": "two", "args": [2, 2], "expected": 5},
-                             {"name": "three", "args": [3, 3], "expected": 7}, {"name": "big", "args": [4, 4], "expected": 8, "stress": True}]}
+                             {"name": "three", "args": [3, 3], "expected": 7}, {"name": "big", "args": [4, 4], "expected": 8, "large": True}]}
     folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", spec)
     result = judge_folder(folder)                                  # the large cases count too, as on LeetCode
     assert (result.verdict, result.passed, result.total, result.case) == ("Wrong Answer", 1, 4, "two")
@@ -427,3 +398,50 @@ def test_every_command_is_journalled_whatever_came_of_it(journal_file, tmp_path,
     assert lines[0]["verdict"] == "Wrong Answer" and (lines[0]["passed"], lines[0]["total"]) == (0, 1)
     assert lines[0]["problem"] == "add" and lines[0]["failed_case"] == "small" and "at" in lines[0]
     assert "No problem matches" in lines[1]["error"]
+
+
+# ---- what the linked-list problems needed
+
+def test_the_newer_example_markup_reads_like_the_older_one():
+    html = ('<p><strong class="example">Example 1:</strong></p>\n<div class="example-block">\n'
+            '<p><strong>Input:</strong> <span class="example-io">head = [1,2]</span></p>\n'
+            '<p><strong>Output:</strong> <span class="example-io">[2,1]</span></p>\n<p><strong>Explanation:</strong></p>\n'
+            '<p><img alt="" src="https://x/y.jpg" /></p>\n</div>\n<p><strong>Constraints:</strong></p>')
+    text = to_markdown(html)
+    assert "> **Input:** `head = [1,2]`" in text and "> **Output:** `[2,1]`" in text
+    assert "Explanation" not in text and "![](https://x/y.jpg)" in text and "**Constraints:**" in text
+    assert without_follow_up("the end.** Follow up:** Do better?") == "the end."
+
+
+def test_a_cycle_position_shapes_the_list_and_is_not_passed_on(tmp_path):
+    spec = {"function": "loops", "params": [{"name": "head", "type": "ListNode"}, {"name": "pos", "type": "cycle position"}],
+            "returns": "boolean", "cases": [{"name": "tail to second", "args": [[3, 2, 0, -4], 1], "expected": True},
+                                            {"name": "no cycle", "args": [[1, 2], -1], "expected": False},
+                                            {"name": "empty", "args": [[], -1], "expected": False}]}
+    folder = problem(tmp_path, """
+        class Solution:
+            def loops(self, head):                      # takes the list alone; reports whether node 4 leads back to node 2
+                nodes = []
+                while head is not None and len(nodes) < 10:
+                    nodes.append(head); head = head.next
+                return len(nodes) == 10 and nodes[4] is nodes[1]
+        """, spec)
+    for index in range(3):
+        judge(folder, index)
+
+
+def test_a_method_holding_only_leetcodes_note_still_counts_as_not_started():
+    stub = scaffolding._fill_bodies('class Solution:\n    def go(self, head) -> None:\n        """\n        Do not return anything.\n        """\n        ')
+    assert stub.endswith('"""\n        raise NotImplementedError  # your code goes here')
+    written = 'class Solution:\n    def go(self):\n        """Mine."""\n        return 1'
+    assert scaffolding._fill_bodies(written) == written
+
+
+def test_recursing_down_a_very_long_list_is_allowed_as_on_leetcode(tmp_path):
+    spec = {"function": "count", "params": [{"name": "head", "type": "ListNode"}], "returns": "integer",
+            "cases": [{"name": "long", "args": [list(range(100_000))], "expected": 100_000}]}
+    judge(problem(tmp_path, """
+        class Solution:
+            def count(self, head):
+                return 0 if head is None else 1 + self.count(head.next)
+        """, spec))

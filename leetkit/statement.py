@@ -69,9 +69,27 @@ class _Markdown(HTMLParser):
         self.out.append(data if self.in_pre else data.replace("\n", " "))
 
 
+def _example_blocks_as_pre(html: str) -> str:
+    """LeetCode's newer examples are a <div class="example-block"> of paragraphs. Rewritten as the older <pre> of
+    "Label: value" lines, they take the same road as every other example. A picture inside comes out after it."""
+    def convert(match: re.Match) -> str:
+        inner = match.group(1)
+        pictures = re.findall(r"<img[^>]*>", inner)
+        rows = []
+        for paragraph in re.findall(r"<p>(.*?)</p>", re.sub(r"<img[^>]*>", "", inner), flags=re.S):
+            label = re.match(r"\s*<strong>([^<]*)</strong>\s*(.*)", paragraph, flags=re.S)
+            text = re.sub(r"<[^>]+>", "", label.group(2) if label else paragraph).strip()
+            if label and text:
+                rows.append(f"<strong>{label.group(1)}</strong> {text}")
+            elif text:
+                rows.append(text)
+        return "<pre>\n" + "\n".join(rows) + "\n</pre>\n" + "".join(f"<p>{picture}</p>\n" for picture in pictures)
+    return re.sub(r'<div class="example-block">(.*?)</div>', convert, html, flags=re.S)
+
+
 def to_markdown(html: str) -> str:
     parser = _Markdown()
-    parser.feed(html or "")
+    parser.feed(_example_blocks_as_pre(html or ""))
     text = "".join(parser.out).replace("\xa0", " ")
     text = re.sub(r"\*\*([^*\n]+?)\s+\*\*", r"**\1** ", text)      # "**Output: **x" renders as literal stars
     text = re.sub(r"\*\*\*\*", "", text)
@@ -124,12 +142,10 @@ def _examples_as_blocks(text: str) -> str:
     return re.sub(r"```\n(.*?)\n```\n", convert, text, flags=re.S)
 
 
-def split_follow_up(markdown: str) -> tuple[str, str]:
-    """The statement, and its "Follow-up" separately: that part names the target, so the README folds it away."""
-    match = re.search(r"\*\*Follow[- ]?up:?\s*\*\*:?", markdown, flags=re.IGNORECASE)
-    if not match:
-        return markdown, ""
-    return markdown[:match.start()].strip(), markdown[match.end():].strip()
+def without_follow_up(markdown: str) -> str:
+    """The statement up to its "Follow-up": that part names the target to aim for, which is a hint."""
+    match = re.search(r"\*\*\s*Follow[- ]?up:?\s*\*\*:?", markdown, flags=re.IGNORECASE)
+    return markdown[:match.start()].strip() if match else markdown
 
 
 def example_outputs(html: str) -> list[str]:

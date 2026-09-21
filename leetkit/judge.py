@@ -11,9 +11,10 @@ cases.json, for a function problem:
     }
 
 "compare" is one of: exact (default), unordered, unordered_nested, float, any_of.
-A case may carry "stress": true; those only run with --stress.
-A case may be {"name": ..., "file": "big.json", "stress": true}, with its args and expected in that file.
+A case with "large": true is given five times the time limit.
+A case may be {"name": ..., "file": "large_input.json", "large": true}, with its args and expected in that file.
 "returns": "void" with "output_param": 0 judges the argument the solution changed in place.
+A parameter of type "cycle position" is not passed on: it ties the tail of the list before it back to that index (-1: no cycle).
 Types ListNode and TreeNode are built from, and turned back into, LeetCode's list notation.
 
 For a class problem (LRU Cache, Min Stack...) use "class": "LRUCache" instead of "function", and cases of
@@ -28,13 +29,14 @@ from __future__ import annotations
 import copy
 import json
 import signal
+import sys
 import threading
 import types
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-from .structures import linked_list_from_list, linked_list_to_list, tree_from_list, tree_to_list
+from .structures import linked_list_from_list, linked_list_to_list, tie_tail_to, tree_from_list, tree_to_list
 
 
 class NotStarted(Exception):
@@ -54,7 +56,7 @@ class Case:
     name: str
     args: list
     expected: Any
-    stress: bool = False
+    large: bool = False
     ops: Optional[list] = None
 
     def __repr__(self) -> str:
@@ -88,7 +90,7 @@ def load_spec(folder: Path) -> Spec:
         if "file" in c:                                   # a case too big to read keeps its data in its own file
             c = {**json.loads((folder / c["file"]).read_text()), **{k: v for k, v in c.items() if k != "file"}}
         cases.append(Case(name=c.get("name", f"case {i + 1}"), args=c.get("args", []), expected=c.get("expected"),
-                          stress=c.get("stress", False), ops=c.get("ops")))
+                          large=c.get("large", False), ops=c.get("ops")))
     return Spec(folder=folder, function=data.get("function"), class_name=data.get("class"), params=data.get("params", []),
                 returns=data.get("returns", ""), compare=data.get("compare", "exact"), output_param=data.get("output_param"),
                 time_limit=data.get("time_limit", 2.0), cases=cases)
@@ -199,11 +201,15 @@ def describe(spec: Spec, case: Case, got: Any = None, show_got: bool = False, no
 
 # ---- judging one case
 
-def run_case(spec: Spec, case: Case, stress: bool = False) -> None:
+# Python stops at 1000 calls deep. LeetCode allows far more, so that recursing down a list of 10^5 nodes is accepted
+# there. Here too: a recursive answer is judged on whether it is right, not on Python's default.
+_RECURSION_LIMIT = 250_000
+
+def run_case(spec: Spec, case: Case) -> None:
     """Raises NotStarted, WrongAnswer or TimeoutError; returns quietly when the case passes."""
-    __tracebackhide__ = True
+    sys.setrecursionlimit(max(sys.getrecursionlimit(), _RECURSION_LIMIT))
     module = _load_module(spec.folder / "solution.py", f"solution_{spec.folder.name}")
-    limit = spec.time_limit * (5 if case.stress else 1)
+    limit = spec.time_limit * (5 if case.large else 1)
     try:
         with _TimeLimit(limit):
             result, arguments = (_run_class if spec.class_name else _run_function)(spec, case, module)
@@ -222,10 +228,13 @@ def run_case(spec: Spec, case: Case, stress: bool = False) -> None:
 
 
 def _run_function(spec: Spec, case: Case, module) -> tuple[Any, dict]:
-    __tracebackhide__ = True
     types = [p.get("type", "") for p in spec.params] + [""] * len(case.args)
     built = [_build(value, types[i]) for i, value in enumerate(case.args)]
-    returned = getattr(module.Solution(), spec.function)(*built)
+    for i, type_name in enumerate(types[:len(built)]):
+        if type_name == "cycle position" and i > 0:        # LeetCode's pos: where the tail of the list before it links back
+            tie_tail_to(built[i - 1], built[i])
+    passed = [value for i, value in enumerate(built) if types[i] != "cycle position"]
+    returned = getattr(module.Solution(), spec.function)(*passed)
     if spec.output_param is not None:                      # judged on what it did to its argument
         result = _flatten(built[spec.output_param], types[spec.output_param])
     else:
@@ -235,7 +244,6 @@ def _run_function(spec: Spec, case: Case, module) -> tuple[Any, dict]:
 
 
 def _run_class(spec: Spec, case: Case, module) -> tuple[Any, dict]:
-    __tracebackhide__ = True
     instance, results = None, []
     for op, arguments in zip(case.ops, case.args):
         if op == spec.class_name:

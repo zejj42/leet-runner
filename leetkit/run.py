@@ -1,8 +1,6 @@
 """Judges one problem and reports it the way LeetCode does: one verdict with the count of cases passed, and,
 when it is not Accepted, the first case that went wrong and nothing after it.
 
-    python -m leetkit.run problems/001_two_sum
-
 This is what pressing ▶ on a solution.py shows, and what `leet test` prints.
 """
 
@@ -30,15 +28,15 @@ class Result:
         return self.verdict == "Accepted"
 
 
-def judge_folder(folder: Path, stress: bool = True) -> Result:
+def judge_folder(folder: Path) -> Result:
     """Runs the cases in order and stops at the first that does not pass, as LeetCode does."""
     spec = load_spec(folder)
-    cases = [case for case in spec.cases if stress or not case.stress]
+    cases = spec.cases
     result = Result("Accepted", total=len(cases))
     started = time.perf_counter()
     for case in cases:
         try:
-            run_case(spec, case, stress=stress)
+            run_case(spec, case)
         except NotStarted:
             return Result("Not started", total=len(cases))
         except WrongAnswer as wrong:
@@ -98,13 +96,3 @@ def judge_and_report(folder: Path) -> Result:
     result = judge_folder(folder)
     print(report(title_of(folder), result))
     return result
-
-
-def main(argv: list[str]) -> int:
-    folder = Path(argv[0]).resolve()
-    folder = folder.parent if folder.is_file() else folder
-    return 0 if judge_and_report(folder).verdict in ("Accepted", "Not started") else 1
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))

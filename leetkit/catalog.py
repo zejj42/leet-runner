@@ -47,27 +47,20 @@ def all_problems() -> list[Problem]:
 
 
 def find(reference: str) -> Problem:
-    """By chart number ("1", "001"), off-list id ("lc904"), slug, folder path, or any part of the title."""
+    """By number on the list ("1"), off-list id ("lc904"), slug, folder name ("001_two_sum"), or words of the title."""
     problems = all_problems()
-    text = reference.strip().rstrip("/")
-    name = Path(text).name.lower()                       # accepts problems/001_two_sum or a file inside it
-    if Path(text).suffix:
-        name = Path(text).parent.name.lower()
+    text = reference.strip().lower()
+    if text.isdigit():
+        matches = [p for p in problems if p.number == int(text)]
+    elif re.fullmatch(r"lc\d+", text):
+        matches = [p for p in problems if p.leetcode_id == int(text[2:])]
+    else:
+        slug = re.sub(r"^(\d{3}|lc\d{4})_", "", text).replace("_", "-").replace(" ", "-")
+        matches = [p for p in problems if p.slug == slug]
+    if matches:
+        return matches[0]
 
-    for candidate in {text.lower(), name}:
-        if candidate.isdigit():
-            matches = [p for p in problems if p.number == int(candidate)]
-        elif re.fullmatch(r"lc\d+", candidate):
-            matches = [p for p in problems if p.leetcode_id == int(candidate[2:])]
-        else:
-            prefix = re.match(r"(\d{3}|lc\d{4})_", candidate)
-            slug = candidate[prefix.end():] if prefix else candidate
-            slug = slug.replace("_", "-").replace(" ", "-")
-            matches = [p for p in problems if p.slug == slug]
-        if matches:
-            return matches[0]
-
-    words = text.lower().replace("-", " ").split()
+    words = text.replace("-", " ").replace("_", " ").split()
     matches = [p for p in problems if all(word in p.title.lower() for word in words)]
     if len(matches) == 1:
         return matches[0]

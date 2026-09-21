@@ -1,7 +1,7 @@
 """1. Two Sum  (Easy)
 https://leetcode.com/problems/two-sum/
 
-Press ▶ (Run Python File) to test this file.
+Press ▶ to judge this file.
 """
 
 

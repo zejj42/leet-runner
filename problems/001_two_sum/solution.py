@@ -1,5 +1,7 @@
 """1. Two Sum  (Easy)
 https://leetcode.com/problems/two-sum/
+
+Press ▶ to judge this file.
 """
 
 
