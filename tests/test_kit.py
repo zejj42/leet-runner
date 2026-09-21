@@ -337,7 +337,7 @@ def test_the_command_takes_a_number_a_slug_or_title_words_and_nothing_else(capsy
         assert cli._in_the_repo(words).slug == "two-sum"
     assert cli.main(["test", "no-such-problem-at-all"]) == 2 and "No problem matches" in capsys.readouterr().err
     assert cli.main(["test", "valid-parentheses"]) in (0, 1, 2)            # on the list; judged once its folder exists
-    for gone in (["new", "2"], ["list"], ["next"], ["test"], ["open"]):
+    for gone in (["new", "2"], ["next"], ["test"], ["open"]):
         with pytest.raises(SystemExit):
             cli.main(gone)
 
@@ -390,11 +390,11 @@ def test_every_command_is_journalled_whatever_came_of_it(journal_file, tmp_path,
     assert cli.main(["test", "add"]) == 1
     assert cli.main(["test", "no-such-problem-at-all"]) == 2
     with pytest.raises(SystemExit):
-        cli.main(["list"])
+        cli.main(["next"])
 
     lines = [json.loads(line) for line in journal_file.read_text().splitlines()]
     assert [(line["command"], line["args"], line["exit"]) for line in lines] == [
-        ("test", ["add"], 1), ("test", ["no-such-problem-at-all"], 2), ("list", [], 2)]
+        ("test", ["add"], 1), ("test", ["no-such-problem-at-all"], 2), ("next", [], 2)]
     assert lines[0]["verdict"] == "Wrong Answer" and (lines[0]["passed"], lines[0]["total"]) == (0, 1)
     assert lines[0]["problem"] == "add" and lines[0]["failed_case"] == "small" and "at" in lines[0]
     assert "No problem matches" in lines[1]["error"]
@@ -551,3 +551,23 @@ def test_every_statement_in_the_repo_can_be_read(capsys):
             assert cli.main(["read", problem.slug]) == 0
             said = capsys.readouterr().out
             assert problem.title in said and "**" not in said and "<span" not in said, problem.title
+
+
+# ---- leet list
+
+def test_list_names_every_problem_in_the_repo_and_pages_only_a_tall_list_on_a_terminal(monkeypatch, capsys):
+    from leetkit import cli
+    assert cli.main(["list"]) == 0
+    said = capsys.readouterr().out
+    assert "001  Two Sum" in said and "two-sum" in said and "142  Reorder List" in said and "medium" in said
+    assert said.index("001") < said.index("003") < said.index("142") and "problems.  leet read" in said
+
+    paged = []
+    monkeypatch.setattr(cli.sys.stdout, "isatty", lambda: True, raising=False)
+    monkeypatch.setattr(cli.shutil, "get_terminal_size", lambda fallback: os.terminal_size((80, 5)))
+    monkeypatch.setattr(cli.shutil, "which", lambda name: "/usr/bin/less")
+    monkeypatch.setattr(cli.subprocess, "run", lambda command, input, text: paged.append(command))
+    cli._show("\n".join(str(n) for n in range(3)))               # fits: printed
+    assert paged == [] and "0\n1\n2" in capsys.readouterr().out
+    cli._show("\n".join(str(n) for n in range(30)))              # too tall: through less
+    assert paged == [["less", "-FRX"]]

@@ -1,4 +1,4 @@
-"""leet: read a problem, write it in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up,
+"""leet: list the problems, read one, write it in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up,
 update it."""
 
 from __future__ import annotations
@@ -38,7 +38,8 @@ def _run(argv: list[str], facts: dict) -> int:
     from .version import version
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{read,code,test,open,reset,setup,update}")
+    commands = parser.add_subparsers(dest="command", required=True, metavar="{list,read,code,test,open,reset,setup,update}")
+    commands.add_parser("list", help="every problem in the repo")
     commands.add_parser("read", help="show a problem's statement").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
@@ -53,7 +54,7 @@ def _run(argv: list[str], facts: dict) -> int:
     args = parser.parse_args(argv)
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
-        return {"read": _read, "code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup, "update": _update}[args.command](args)
+        return {"list": _list, "read": _read, "code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup, "update": _update}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
         facts["error"] = str(problem)
@@ -98,6 +99,32 @@ def _test(args) -> int:
     args.facts.update(verdict=result.verdict, passed=result.passed, total=result.total, failed_case=result.case or None,
                       ms=result.milliseconds if result.accepted else None)
     return 0 if result.verdict in ("Accepted", "Not started") else 1
+
+
+def _list(args) -> int:
+    colours = {"easy": "32", "medium": "33", "hard": "31"}
+    terminal = sys.stdout.isatty()
+    problems = [problem for problem in all_problems() if problem.folder.exists()]
+    width = max((len(problem.title) for problem in problems), default=0)
+    lines = []
+    for problem in problems:
+        level = f"{problem.difficulty:<6}"
+        if terminal:
+            level = f"\033[{colours.get(problem.difficulty, '0')}m{level}\033[0m"
+        lines.append(f"{problem.label}  {problem.title:<{width}}  {level}  {problem.slug}")
+    lines.append(f"\n{len(problems)} problems.  leet read <number or slug>")
+    _show("\n".join(lines))
+    return 0
+
+
+def _show(text: str) -> None:
+    """As git does: a list taller than the terminal goes through less (space for the next page, q to leave); one that
+    fits is simply printed, and so is anything that is piped somewhere."""
+    rows = shutil.get_terminal_size((80, 24)).lines
+    if sys.stdout.isatty() and text.count("\n") + 2 > rows and shutil.which("less"):
+        subprocess.run(["less", "-FRX"], input=text + "\n", text=True)
+    else:
+        print(text)
 
 
 def _read(args) -> int:
