@@ -524,3 +524,30 @@ def test_open_says_why_when_vs_code_cannot_open_a_window(monkeypatch, capsys):
     monkeypatch.delenv("SSH_CONNECTION")
     monkeypatch.setattr(cli.shutil, "which", lambda name: None)
     assert cli.main(["open", "two-sum"]) == 1 and "leet code two-sum" in capsys.readouterr().out
+
+
+# ---- leet read
+
+def test_a_statement_is_laid_out_for_the_terminal():
+    from leetkit.reader import render
+    text = render("# 1. Two Sum\n\n<span class=\"badge easy\">Easy</span> <span class=\"where\">array · First 75</span>\n\n"
+                  "<https://leetcode.com/problems/two-sum/>\n\nYou get `nums` and **exactly** one *pair* of them " + "adds up " * 20 + "\n\n"
+                  "**Example 1:**\n\n![](https://x/y.png)\n\n> **Input:** `nums = [2,7]`  \n> **Output:** `[0,1]`  \n\n"
+                  "```\nL0 → L1\n```\n\n**Constraints:**\n\n - `2 <= nums.length <= 10^4`\n", colour=False, width=60)
+    assert text.startswith("1. Two Sum\n\nEasy   array · First 75\n\nhttps://leetcode.com/problems/two-sum/\n")
+    assert "You get nums and exactly one pair of them" in text and max(len(row) for row in text.split("\n")) <= 60
+    assert "Example 1:\n" in text and "(picture)  https://x/y.png" in text
+    assert "  │ Input: nums = [2,7]\n  │ Output: [0,1]" in text
+    assert "    L0 → L1" in text and "  • 2 <= nums.length <= 10^4" in text
+    assert "*" not in text and "`" not in text and "<" not in text.replace("<=", "")
+    assert "\033[1;32mEasy" in render('<span class="badge easy">Easy</span>', colour=True)
+
+
+def test_every_statement_in_the_repo_can_be_read(capsys):
+    from leetkit import cli
+    from leetkit.catalog import all_problems
+    for problem in all_problems():
+        if problem.folder.exists():
+            assert cli.main(["read", problem.slug]) == 0
+            said = capsys.readouterr().out
+            assert problem.title in said and "**" not in said and "<span" not in said, problem.title

@@ -1,4 +1,4 @@
-"""leet: write a problem in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up,
+"""leet: read a problem, write it in Neovim or vim, test it, open it in VS Code, reset it to its empty state, set the repo up,
 update it."""
 
 from __future__ import annotations
@@ -38,7 +38,8 @@ def _run(argv: list[str], facts: dict) -> int:
     from .version import version
     parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{code,test,open,reset,setup,update}")
+    commands = parser.add_subparsers(dest="command", required=True, metavar="{read,code,test,open,reset,setup,update}")
+    commands.add_parser("read", help="show a problem's statement").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("test", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
@@ -52,7 +53,7 @@ def _run(argv: list[str], facts: dict) -> int:
     args = parser.parse_args(argv)
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
-        return {"code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup, "update": _update}[args.command](args)
+        return {"read": _read, "code": _code, "test": _test, "open": _open, "reset": _reset, "setup": _setup, "update": _update}[args.command](args)
     except LookupError as problem:
         print(f"leet: {problem}", file=sys.stderr)
         facts["error"] = str(problem)
@@ -97,6 +98,14 @@ def _test(args) -> int:
     args.facts.update(verdict=result.verdict, passed=result.passed, total=result.total, failed_case=result.case or None,
                       ms=result.milliseconds if result.accepted else None)
     return 0 if result.verdict in ("Accepted", "Not started") else 1
+
+
+def _read(args) -> int:
+    from .reader import render
+    problem = _in_the_repo(args.problem)
+    args.facts["problem"] = problem.slug
+    print(render((problem.folder / "README.md").read_text(), colour=sys.stdout.isatty()))
+    return 0
 
 
 def _code(args) -> int:

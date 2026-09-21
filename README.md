@@ -13,6 +13,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
 
 ## Usage
 
+    leet read <problem>     show the problem's statement
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet test <problem>     judge problems/<problem>/solution.py
     leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question)
@@ -31,6 +32,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
 
 Write the solution with `leet code`, or in any editor, then:
 
+    $ leet read two-sum
     $ leet code two-sum
     $ leet test two-sum
     Two Sum   Accepted   15 / 15 testcases passed   4 ms
@@ -119,6 +121,7 @@ VS Code, optional. The workspace recommends the Python and Code Runner extension
       run.py             judges a folder, formats the verdict
       catalog.py         problem lookup
       structures.py      ListNode, TreeNode
+      reader.py          leet read: a statement laid out for the terminal
       journal.py         journal.jsonl
       version.py         leet --version
       autorun.py         ▶ support
