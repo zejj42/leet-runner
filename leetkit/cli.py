@@ -106,13 +106,18 @@ def _list(args) -> int:
     terminal = sys.stdout.isatty()
     problems = [problem for problem in all_problems() if problem.folder.exists()]
     width = max((len(problem.title) for problem in problems), default=0)
+    from .progress import solved
+    done = solved()
     lines = []
     for problem in problems:
         level = f"{problem.difficulty:<6}"
+        mark = "✓" if problem.slug in done else " "
         if terminal:
             level = f"\033[{colours.get(problem.difficulty, '0')}m{level}\033[0m"
-        lines.append(f"{problem.label}  {problem.title:<{width}}  {level}  {problem.slug}")
-    lines.append(f"\n{len(problems)} problems.  leet read <number or slug>")
+            mark = f"\033[1;32m{mark}\033[0m"
+        lines.append(f"{mark} {problem.label}  {problem.title:<{width}}  {level}  {problem.slug}")
+    count = sum(problem.slug in done for problem in problems)
+    lines.append(f"\n{count} of {len(problems)} solved.  leet read <number or slug>")
     _show("\n".join(lines))
     return 0
 

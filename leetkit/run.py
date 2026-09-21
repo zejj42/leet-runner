@@ -95,4 +95,19 @@ def title_of(folder: Path) -> str:
 def judge_and_report(folder: Path) -> Result:
     result = judge_folder(folder)
     print(report(title_of(folder), result))
+    if result.accepted:
+        _note_solved(folder)
     return result
+
+
+def _note_solved(folder: Path) -> None:
+    """For `leet list`. Only a problem of this repo counts, not a copy of its folder somewhere else."""
+    from . import catalog
+    from .progress import mark_solved
+    if folder.resolve().parent != catalog.PROBLEMS_DIR.resolve():
+        return
+    try:
+        mark_solved(catalog.find(folder.name).slug)
+    except LookupError:
+        pass
+

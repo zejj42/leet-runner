@@ -13,7 +13,7 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
 
 ## Usage
 
-    leet list               every problem in the repo; a long list is paged with less (space: next page, q: quit)
+    leet list               every problem in the repo, ✓ on the solved ones; a long list is paged with less (space: next page, q: quit)
     leet read <problem>     show the problem's statement
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet test <problem>     judge problems/<problem>/solution.py
@@ -58,6 +58,8 @@ Judging stops at the first failing case.
 | `Not started` | the method still raises `NotImplementedError` |
 
 Exit codes: `0` Accepted or Not started, `1` any other verdict, `2` unknown problem or bad usage.
+
+A problem is marked solved the first time it is Accepted, in `progress.json` (git-ignored), and stays so.
 
 Every invocation is appended to `journal.jsonl` (git-ignored), one JSON object per line:
 
@@ -124,6 +126,7 @@ VS Code, optional. The workspace recommends the Python and Code Runner extension
       structures.py      ListNode, TreeNode
       reader.py          leet read: a statement laid out for the terminal
       journal.py         journal.jsonl
+      progress.py        progress.json: what is solved
       version.py         leet --version
       autorun.py         ▶ support
       colours.py         installs vscode/verdict-colours

@@ -3,3 +3,4 @@ __pycache__/
 .DS_Store
 journal.jsonl
 problems/*/solution.py
+progress.json

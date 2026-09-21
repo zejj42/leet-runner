@@ -377,6 +377,7 @@ def test_every_problem_in_the_repo_can_be_reset():
 def journal_file(tmp_path, monkeypatch):
     """No test writes in the real journal."""
     monkeypatch.setattr("leetkit.journal.PATH", tmp_path / "journal.jsonl")
+    monkeypatch.setattr("leetkit.progress.PATH", tmp_path / "progress.json")          # nor in the real progress
     return tmp_path / "journal.jsonl"
 
 
@@ -559,8 +560,8 @@ def test_list_names_every_problem_in_the_repo_and_pages_only_a_tall_list_on_a_te
     from leetkit import cli
     assert cli.main(["list"]) == 0
     said = capsys.readouterr().out
-    assert "001  Two Sum" in said and "two-sum" in said and "142  Reorder List" in said and "medium" in said
-    assert said.index("001") < said.index("003") < said.index("142") and "problems.  leet read" in said
+    assert "  001  Two Sum" in said and "0 of " in said and "two-sum" in said and "142  Reorder List" in said and "medium" in said
+    assert said.index("001") < said.index("003") < said.index("142") and "solved.  leet read" in said
 
     paged = []
     monkeypatch.setattr(cli.sys.stdout, "isatty", lambda: True, raising=False)
@@ -571,3 +572,29 @@ def test_list_names_every_problem_in_the_repo_and_pages_only_a_tall_list_on_a_te
     assert paged == [] and "0\n1\n2" in capsys.readouterr().out
     cli._show("\n".join(str(n) for n in range(30)))              # too tall: through less
     assert paged == [["less", "-FRX"]]
+
+
+def test_an_accepted_problem_is_marked_solved_in_the_list_and_stays_so(tmp_path, monkeypatch, capsys):
+    from leetkit import cli, progress
+    from leetkit.run import judge_and_report
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    folder = tmp_path / "001_two_sum"; folder.mkdir()
+    problem(folder, "class Solution:\n    def add(self, a, b): return a - b", ADD)
+    judge_and_report(folder)
+    assert progress.solved() == {}                                          # a wrong answer is no note
+    problem(folder, "class Solution:\n    def add(self, a, b): return a + b", ADD)
+    judge_and_report(folder)
+    first = progress.solved()
+    assert list(first) == ["two-sum"]
+    problem(folder, "class Solution:\n    def add(self, a, b): return a - b", ADD)
+    judge_and_report(folder)
+    assert progress.solved() == first                                       # solved stays solved
+    capsys.readouterr()
+    assert cli.main(["list"]) == 0
+    said = capsys.readouterr().out
+    assert "✓ 001  Two Sum" in said and "1 of 1 solved" in said
+
+    elsewhere = tmp_path / "copies" / "003_merge_two_sorted_lists"; elsewhere.mkdir(parents=True)
+    problem(elsewhere, "class Solution:\n    def add(self, a, b): return a + b", ADD)
+    judge_and_report(elsewhere)
+    assert list(progress.solved()) == ["two-sum"]                           # a copy outside the repo does not count
