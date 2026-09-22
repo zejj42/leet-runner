@@ -6,7 +6,7 @@
 
 `schedule` holds the working hours of a group of employees. `schedule[i]` is the list of employee `i`'s working intervals, each one `[start, end]`. One employee's intervals never overlap each other, and they come sorted by start.
 
-Find the stretches of time when **nobody** is working: return *the list of finite intervals, each longer than zero, during which every employee is free*, sorted by start. The time before the first interval of all and after the last one of all goes on forever, so it is not part of the answer.
+Find the stretches of time when **nobody** is working: return *the list of finite intervals, each longer than zero, during which every employee is free*, sorted by start. The time before the first interval of all and after the last one of all goes on forever, so it is not part of the answer. Two working intervals that touch, like `[1,3]` and `[3,5]`, leave no free time between them.
 
 LeetCode hands this problem `Interval` objects. Here an interval is a plain `[start, end]` list, going in and coming out.
 

@@ -6,6 +6,8 @@
 
 You get a list of `intervals` where each `intervals[i] = [start_i, end_i]`. Merge all overlapping intervals and return *a list of non-overlapping intervals that covers all the input intervals*.
 
+Two intervals overlap when they share at least one point, so intervals that only touch, like `[1,4]` and `[4,5]`, overlap too and are merged.
+
 **Example 1:**
 
 > **Input:** `intervals = [[1,3],[2,6],[8,10],[15,18]]`  

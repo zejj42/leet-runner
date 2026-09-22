@@ -6,7 +6,7 @@
 
 You get a list of meetings, `intervals`, where `intervals[i] = [start_i, end_i]` says when meeting `i` starts and when it ends. Work out whether one person can sit through every meeting from start to end.
 
-Return `true` *when no two meetings overlap*, and `false` when any two do. A meeting that starts at the very moment another one ends does not overlap it.
+Return `true` *when no two meetings overlap*, and `false` when any two do. Meetings that only touch do not overlap: one may start at the very moment another ends, like `[1,2]` and `[2,3]`.
 
 **Example 1:**
 
