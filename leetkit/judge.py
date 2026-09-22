@@ -14,6 +14,8 @@ cases.json, for a function problem:
 A case with "large": true is given five times the time limit.
 A case may be {"name": ..., "file": "large_input.json.gz", "large": true}, with its args and expected in that
 file, gzipped or not.
+A case {"name": "random small inputs", "file": "random.json.gz", "batch": true} stands for every case in that file,
+{"cases": [{"args": ..., "expected": ...}, ...]}, named "random small inputs 1", "random small inputs 2", ...
 "returns": "void" with "output_param": 0 judges the argument the solution changed in place.
 A parameter of type "cycle position" is not passed on: it ties the tail of the list before it back to that index (-1: no cycle).
 Types ListNode and TreeNode are built from, and turned back into, LeetCode's list notation.
@@ -88,6 +90,10 @@ def load_spec(folder: Path) -> Spec:
     data = json.loads((folder / "cases.json").read_text())
     cases = []
     for i, c in enumerate(data.get("cases", [])):
+        if c.get("batch"):                                # many small cases in one file: {"cases": [{"args", "expected"}...]}
+            for j, item in enumerate(_read_data(folder / c["file"])["cases"]):
+                cases.append(Case(name=f"{c['name']} {j + 1}", args=item.get("args", []), expected=item.get("expected"), ops=item.get("ops")))
+            continue
         if "file" in c:                                   # a case too big to read keeps its data in its own file
             c = {**_read_data(folder / c["file"]), **{k: v for k, v in c.items() if k != "file"}}
         cases.append(Case(name=c.get("name", f"case {i + 1}"), args=c.get("args", []), expected=c.get("expected"),

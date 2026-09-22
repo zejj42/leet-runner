@@ -176,3 +176,14 @@ def test_recursing_down_a_very_long_list_is_allowed_as_on_leetcode(tmp_path):
             def count(self, head):
                 return 0 if head is None else 1 + self.count(head.next)
         """, spec))
+
+
+def test_a_batch_file_stands_for_many_small_cases(tmp_path):
+    import gzip
+    spec = {**ADD, "cases": [{"name": "one", "args": [1, 1], "expected": 2}, {"name": "random small", "file": "random.json.gz", "batch": True}]}
+    folder = problem(tmp_path, "class Solution:\n    def add(self, a, b): return a + b", spec)
+    (folder / "random.json.gz").write_bytes(gzip.compress(json.dumps({"cases": [{"args": [i, i], "expected": 2 * i} for i in range(30)]}).encode()))
+    loaded = load_spec(folder)
+    assert len(loaded.cases) == 31 and loaded.cases[1].name == "random small 1" and loaded.cases[30].args == [29, 29]
+    for case in loaded.cases:
+        run_case(loaded, case)

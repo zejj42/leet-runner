@@ -21,6 +21,8 @@
     {"name": "largest values allowed", "args": [[100000, 99999, 100000], 2], "expected": 199999},
     {"name": "only the middle window is distinct", "args": [[1, 1, 2, 3, 3], 3], "expected": 6},
     {"name": "repeats far apart inside a long window", "args": [[1, 2, 3, 4, 5, 1, 6, 7], 6], "expected": 26},
+    {"name": "a repeat five apart, k of five", "args": [[9, 18, 10, 13, 17, 9, 19, 2, 1, 18], 5], "expected": 68},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
     {"name": "largest input, k half the length", "file": "large_input.json.gz", "large": true}
   ]
 }
