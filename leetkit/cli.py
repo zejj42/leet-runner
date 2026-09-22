@@ -36,15 +36,19 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run(argv: list[str], facts: dict) -> int:
     from .version import version
-    parser = argparse.ArgumentParser(prog="leet", description="Practice the LeetTracker list locally.")
+    parser = argparse.ArgumentParser(
+        prog="leet", formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Practice the LeetTracker list locally: read a problem, write it in your editor, check it.",
+        epilog="A <problem> is its number on the list (1), its LeetCode slug (two-sum), or words from its title (two sum).\n"
+               "`leet <command> -h` shows a command's own options, e.g. `leet reset -h`.")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
     commands = parser.add_subparsers(dest="command", required=True, metavar="{list,read,code,check,open,reset,startover,setup,update}")
-    commands.add_parser("list", help="every problem in the repo")
+    commands.add_parser("list", help="every problem in the repo, with its solves as a growing 正 (一 丅 下 止 正)")
     commands.add_parser("read", help="show a problem's statement").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
-    commands.add_parser("check", help="judge your solution to a problem").add_argument("problem", nargs="+", help=_PROBLEM)
+    commands.add_parser("check", help="judge your solution to a problem; the first Accepted of a fresh solve adds a stroke").add_argument("problem", nargs="+", help=_PROBLEM)
     commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
-    reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
+    reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state; its solves stay (--progress forgets them too)")
     reset.add_argument("problem", nargs="+", help=_PROBLEM)
     reset.add_argument("-y", "--yes", action="store_true", help="do not ask first")
     reset.add_argument("--progress", action="store_true", help="also forget the problem's solves: its 正 goes blank")
