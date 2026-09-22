@@ -12,7 +12,25 @@ from pathlib import Path
 
 from .catalog import ROOT, Problem, all_problems, find
 
-_PROBLEM = "its number on the list (1), its LeetCode slug (two-sum), or words from its title"
+_USAGE = """\
+usage: leet <command> [<problem>] [options]
+
+  list                     the problems in the repo, difficulty and category, 正 grows one stroke per solve
+  read <problem>           print the problem's statement
+  code <problem>           open its solution.py in nvim (vim if there is no nvim)
+  check <problem>          judge solution.py: Accepted, Wrong Answer, Runtime Error, Time Limit Exceeded
+  open <problem>           open the problem in VS Code
+  reset <problem>          erase your code; the problem keeps its solves
+      --progress           also forget its solves
+      -y                   do not ask first
+  startover                erase your code in every problem and forget all solves
+      -y                   do not ask first
+  setup                    create .venv, the leet command and the VS Code extension
+  update                   pull the newest problems and kit from GitHub
+  --version
+
+<problem>  its number on the list (1), its LeetCode slug (two-sum), or words of its title (two sum)
+"""
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -36,29 +54,31 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run(argv: list[str], facts: dict) -> int:
     from .version import version
-    parser = argparse.ArgumentParser(
-        prog="leet", formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="Practice the LeetTracker list locally: read a problem, write it in your editor, check it.",
-        epilog="A <problem> is its number on the list (1), its LeetCode slug (two-sum), or words from its title (two sum).\n"
-               "`leet <command> -h` shows a command's own options, e.g. `leet reset -h`.")
+    parser = argparse.ArgumentParser(prog="leet", usage=_USAGE, add_help=False)
+    parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
-    commands = parser.add_subparsers(dest="command", required=True, metavar="{list,read,code,check,open,reset,startover,setup,update}")
-    commands.add_parser("list", help="every problem in the repo, with its solves as a growing 正 (一 丅 下 止 正)")
-    commands.add_parser("read", help="show a problem's statement").add_argument("problem", nargs="+", help=_PROBLEM)
-    commands.add_parser("code", help="edit a problem's solution.py in Neovim (or vim, if there is no nvim)").add_argument("problem", nargs="+", help=_PROBLEM)
-    commands.add_parser("check", help="judge your solution to a problem; the first Accepted of a fresh solve adds a stroke").add_argument("problem", nargs="+", help=_PROBLEM)
-    commands.add_parser("open", help="open a problem in VS Code").add_argument("problem", nargs="+", help=_PROBLEM)
-    reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state; its solves stay (--progress forgets them too)")
-    reset.add_argument("problem", nargs="+", help=_PROBLEM)
-    reset.add_argument("-y", "--yes", action="store_true", help="do not ask first")
-    reset.add_argument("--progress", action="store_true", help="also forget the problem's solves: its 正 goes blank")
-    startover = commands.add_parser("startover", help="erase your code in every problem and forget what was solved")
-    startover.add_argument("-y", "--yes", action="store_true", help="do not ask first")
-    commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
-
-    commands.add_parser("update", help="get the newest problems and kit from GitHub; your solutions are left alone")
+    commands = parser.add_subparsers(dest="command", metavar="<command>")
+    def command(name: str, usage: str, problem: bool = False, yes: bool = False):
+        sub = commands.add_parser(name, add_help=False, usage=f"leet {usage}")
+        sub.add_argument("-h", "--help", action="store_true")   # -h anywhere prints the one help page
+        if problem:
+            sub.add_argument("problem", nargs="*")
+        if yes:
+            sub.add_argument("-y", "--yes", action="store_true")
+        return sub
+    for name in ("list", "setup", "update"):
+        command(name, name)
+    for name in ("read", "code", "check", "open"):
+        command(name, f"{name} <problem>", problem=True)
+    command("reset", "reset <problem> [--progress] [-y]", problem=True, yes=True).add_argument("--progress", action="store_true")
+    command("startover", "startover [-y]", yes=True)
 
     args = parser.parse_args(argv)
+    if args.help or args.command is None:
+        print(_USAGE.rstrip("\n"))
+        return 0
+    if getattr(args, "problem", None) == []:
+        parser.exit(2, f"leet {args.command}: which problem? {_USAGE.splitlines()[-1].lstrip('<problem> ')}\n")
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
         return {"list": _list, "read": _read, "code": _code, "check": _check, "open": _open, "reset": _reset, "startover": _startover, "setup": _setup, "update": _update}[args.command](args)
