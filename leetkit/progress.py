@@ -66,5 +66,11 @@ def note_reset(slug: str) -> None:
         _write(entries)
 
 
+def forget(slug: str) -> None:
+    entries = _read()
+    if entries.pop(slug, None) is not None:
+        _write(entries)
+
+
 def forget_all() -> None:
     PATH.unlink(missing_ok=True)

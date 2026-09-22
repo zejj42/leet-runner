@@ -207,3 +207,24 @@ def test_the_colour_extension_packs_into_something_vs_code_can_install(tmp_path)
     names = zipfile.ZipFile(pack(tmp_path / "colours.vsix")).namelist()
     assert {"[Content_Types].xml", "extension.vsixmanifest", "extension/package.json",
             "extension/syntaxes/verdict.tmLanguage.json"} <= set(names)
+
+
+def test_reset_with_progress_forgets_the_problems_solves_too(tmp_path, monkeypatch, capsys):
+    from leetkit import cli, progress
+    monkeypatch.setattr(scaffolding, "fetch", lambda slug: QUESTION)
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    monkeypatch.setattr("leetkit.catalog.STUBS_DIR", tmp_path / "stubs")
+    monkeypatch.setattr("leetkit.cli.ROOT", tmp_path)
+    solution = scaffolding.scaffold(find("two-sum")) / "solution.py"
+    progress.mark_solved("two-sum", "abc"); progress.mark_solved("3sum", "abc")
+
+    assert cli.main(["reset", "two-sum", "-y"]) == 0 and progress.solves() == {"two-sum": 1, "3sum": 1}   # plain reset keeps them
+    solution.write_text("mine")
+    monkeypatch.setattr("builtins.input", lambda prompt: (assert_(prompt, "erases your code") or assert_(prompt, "forgets its 1 solve") or "y"))
+    assert cli.main(["reset", "two-sum", "--progress"]) == 0
+    assert progress.solves() == {"3sum": 1} and solution.read_text() != "mine"         # only this problem is forgotten
+    assert cli.main(["reset", "two-sum", "--progress"]) == 0 and "already" in capsys.readouterr().out
+
+
+def assert_(text, part):
+    assert part in text, text

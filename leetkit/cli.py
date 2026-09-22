@@ -47,6 +47,7 @@ def _run(argv: list[str], facts: dict) -> int:
     reset = commands.add_parser("reset", help="put a problem's solution.py back to its empty starting state")
     reset.add_argument("problem", nargs="+", help=_PROBLEM)
     reset.add_argument("-y", "--yes", action="store_true", help="do not ask first")
+    reset.add_argument("--progress", action="store_true", help="also forget the problem's solves: its 正 goes blank")
     startover = commands.add_parser("startover", help="erase your code in every problem and forget what was solved")
     startover.add_argument("-y", "--yes", action="store_true", help="do not ask first")
     commands.add_parser("setup", help="create the virtual environment, the `leet` command and ▶ on a solution.py")
@@ -201,20 +202,27 @@ def _reset(args) -> int:
     args.facts.update(problem=problem.slug, erased=False)
     if not problem.stub.exists():
         raise LookupError(f"{problem.title} has no starting file saved in {problem.stub.parent.relative_to(ROOT)}.")
+    from . import progress
     solution = problem.folder / "solution.py"
-    if solution.exists() and solution.read_text() == problem.stub.read_text():
+    empty = not solution.exists() or solution.read_text() == problem.stub.read_text()
+    solves = progress.solves().get(problem.slug, 0)
+    if empty and not (args.progress and solves):
         print(f"{problem.title} is already in its starting state.")
         return 0
     if not args.yes:
-        answer = input(f"This erases your code in {solution.relative_to(ROOT)}. Go on? [y/N] ")
-        if answer.strip().lower() not in ("y", "yes"):
+        doing = [] if empty else [f"erases your code in {solution.relative_to(ROOT)}"]
+        if args.progress and solves:
+            doing.append(f"forgets its {solves} solve{'' if solves == 1 else 's'}")
+        if input(f"This {' and '.join(doing)}. Go on? [y/N] ").strip().lower() not in ("y", "yes"):
             print("Left as it is.")
             return 1
     solution.write_text(problem.stub.read_text())
-    from . import progress
-    progress.note_reset(problem.slug)                       # its strokes stay; the next Accepted adds one
-    args.facts["erased"] = True
-    print(f"{problem.title} is back to its starting state.")
+    if args.progress:
+        progress.forget(problem.slug)
+    else:
+        progress.note_reset(problem.slug)                   # its strokes stay; the next Accepted adds one
+    args.facts.update(erased=not empty, forgotten=solves if args.progress else 0)
+    print(f"{problem.title} is back to its starting state" + (", unsolved." if args.progress else "."))
     return 0
 
 
