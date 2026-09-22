@@ -54,7 +54,8 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run(argv: list[str], facts: dict) -> int:
     from .version import version
-    parser = argparse.ArgumentParser(prog="leet", usage=_USAGE, add_help=False)
+    parser = argparse.ArgumentParser(prog="leet", usage=argparse.SUPPRESS, add_help=False)
+    parser.error = lambda message: parser.exit(2, f"leet: {message.split(' (choose from')[0]}\n{_USAGE}")
     parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
     commands = parser.add_subparsers(dest="command", metavar="<command>")
