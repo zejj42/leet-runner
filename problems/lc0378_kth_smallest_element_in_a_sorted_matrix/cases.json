@@ -1,0 +1,37 @@
+{
+  "function": "kthSmallest",
+  "params": [
+    {"name": "matrix", "type": "integer[][]"},
+    {"name": "k", "type": "integer"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[[1, 5, 9], [10, 11, 13], [12, 13, 15]], 8], "expected": 13},
+    {"name": "example 2", "args": [[[-5]], 1], "expected": -5},
+    {"name": "all identical values", "args": [[[3, 3], [3, 3]], 3], "expected": 3},
+    {"name": "single cell matrix", "args": [[[7]], 1], "expected": 7},
+    {"name": "k is one, smallest overall", "args": [[[2, 5], [3, 7]], 1], "expected": 2},
+    {"name": "k is n squared, largest overall", "args": [[[1, 2], [3, 4]], 4], "expected": 4},
+    {"name": "duplicate values across rows and columns", "args": [[[1, 2], [2, 3]], 3], "expected": 2},
+    {"name": "negative and positive mixed", "args": [[[-5, -1], [-2, 4]], 2], "expected": -2},
+    {"name": "three by three with repeats", "args": [[[1, 3, 5], [2, 4, 6], [4, 6, 8]], 5], "expected": 4},
+    {"name": "two by two all negative", "args": [[[-9, -7], [-8, -6]], 3], "expected": -7},
+    {"name": "large value gaps between rows", "args": [[[1, 2], [100, 101]], 3], "expected": 100},
+    {"name": "two by two, repeated first column", "args": [[[1, 2], [1, 3]], 2], "expected": 1},
+    {"name": "three by three ascending blocks, middle k", "args": [[[1, 2, 3], [4, 5, 6], [7, 8, 9]], 5], "expected": 5},
+    {"name": "three by three, k near middle", "args": [[[1, 3, 5], [6, 7, 12], [11, 14, 14]], 6], "expected": 11},
+    {"name": "three by three, small k with wide spread", "args": [[[1, 5, 9], [2, 6, 13], [12, 13, 15]], 4], "expected": 6},
+    {"name": "two by two with one negative, smallest", "args": [[[-4, 2], [1, 3]], 1], "expected": -4},
+    {"name": "two by two all identical", "args": [[[2, 2], [2, 2]], 3], "expected": 2},
+    {"name": "two by two, large value jump", "args": [[[1, 1000], [1001, 1002]], 2], "expected": 1000},
+    {"name": "two by two crossing zero", "args": [[[-3, -1], [0, 2]], 3], "expected": 0},
+    {"name": "four by four evenly spaced, small k", "args": [[[1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15], [4, 8, 12, 16]], 4], "expected": 4},
+    {"name": "two by two, repeated middle value", "args": [[[1, 2], [2, 3]], 2], "expected": 2},
+    {"name": "four by four sequential, maximum k", "args": [[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]], 16], "expected": 16},
+    {"name": "three by three all negative", "args": [[[-9, -7, -3], [-8, -6, -2], [-5, -4, -1]], 5], "expected": -5},
+    {"name": "three by three column-major spread, high k", "args": [[[1, 5, 9], [2, 6, 10], [3, 7, 11]], 7], "expected": 9},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
+    {"name": "maximum size 300x300 matrix", "file": "large_max_matrix.json.gz", "large": true}
+  ]
+}

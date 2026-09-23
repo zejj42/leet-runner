@@ -1,0 +1,38 @@
+{
+  "function": "minEatingSpeed",
+  "params": [
+    {"name": "piles", "type": "integer[]"},
+    {"name": "h", "type": "integer"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[3, 6, 7, 11], 8], "expected": 4},
+    {"name": "example 2", "args": [[30, 11, 23, 4, 20], 5], "expected": 30},
+    {"name": "example 3", "args": [[30, 11, 23, 4, 20], 6], "expected": 23},
+    {"name": "single pile exactly divides hours", "args": [[10], 5], "expected": 2},
+    {"name": "single pile, plenty of hours", "args": [[7], 100], "expected": 1},
+    {"name": "hours equal number of piles", "args": [[4, 7, 9, 12], 4], "expected": 12},
+    {"name": "all piles equal size", "args": [[4, 4, 4], 6], "expected": 2},
+    {"name": "all piles size one", "args": [[1, 1, 1], 3], "expected": 1},
+    {"name": "one huge pile among tiny ones", "args": [[1000000000, 1], 2], "expected": 1000000000},
+    {"name": "two piles, generous hours", "args": [[5, 100], 105], "expected": 1},
+    {"name": "many small piles tight hours", "args": [[2, 9], 5], "expected": 3},
+    {"name": "descending pile sizes", "args": [[20, 15, 10, 5], 10], "expected": 5},
+    {"name": "hours one more than pile count", "args": [[4, 7, 9, 12], 6], "expected": 7},
+    {"name": "single pile, hours just above half", "args": [[5], 2], "expected": 3},
+    {"name": "small pile then large pile, hours below total", "args": [[1, 5], 5], "expected": 2},
+    {"name": "two equal piles and a double, tight hours", "args": [[6, 6, 12], 5], "expected": 6},
+    {"name": "two equal piles and an odd one, tight hours", "args": [[5, 5, 9], 5], "expected": 5},
+    {"name": "two tiny piles and a large one", "args": [[1, 1, 10], 4], "expected": 5},
+    {"name": "three increasing piles, tight hours", "args": [[6, 10, 14], 5], "expected": 7},
+    {"name": "single pile, hours half of pile", "args": [[6], 3], "expected": 2},
+    {"name": "two piles, hours equal their sum", "args": [[1, 4], 5], "expected": 1},
+    {"name": "two equal piles, hours below pile count sum", "args": [[4, 4], 3], "expected": 4},
+    {"name": "three piles increasing sharply", "args": [[1, 9, 20], 6], "expected": 7},
+    {"name": "large pile flanked by equal smaller ones", "args": [[4, 10, 4], 3], "expected": 10},
+    {"name": "two tiny piles and one large, four hours", "args": [[1, 1, 9], 4], "expected": 5},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
+    {"name": "maximum piles and length, minimum hours", "file": "large_max_piles.json.gz", "large": true}
+  ]
+}

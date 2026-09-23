@@ -1,0 +1,40 @@
+{
+  "function": "minimumShippingCapacity",
+  "params": [
+    {"name": "quantities", "type": "integer[]"},
+    {"name": "weights", "type": "integer[]"},
+    {"name": "maxBoxes", "type": "integer"},
+    {"name": "maxWeightPerBox", "type": "integer"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[8, 12, 5], [2, 3, 1], 6, 20], "expected": 5},
+    {"name": "example 2", "args": [[10, 15, 8], [5, 2, 3], 10, 15], "expected": 4},
+    {"name": "single kind, weight equals box limit", "args": [[9], [10], 9, 10], "expected": 1},
+    {"name": "weight caps items per box below capacity", "args": [[7], [5], 4, 12], "expected": 2},
+    {"name": "all kinds identical", "args": [[10, 10, 10], [2, 2, 2], 6, 10], "expected": 5},
+    {"name": "weight allows more per box than quantity needs", "args": [[3, 3], [1, 1], 2, 100], "expected": 3},
+    {"name": "plenty of spare boxes", "args": [[5, 5, 5], [1, 1, 1], 15, 100], "expected": 1},
+    {"name": "exactly enough boxes at max capacity", "args": [[7, 7], [1, 1], 2, 100], "expected": 7},
+    {"name": "two kinds, one heavy one light", "args": [[10, 4], [9, 1], 11, 9], "expected": 4},
+    {"name": "five identical small kinds", "args": [[4, 4, 4, 4, 4], [1, 1, 1, 1, 1], 10, 10], "expected": 2},
+    {"name": "weight ties box limit for smallest capacity", "args": [[8], [4], 4, 8], "expected": 2},
+    {"name": "single kind, plenty of spare boxes", "args": [[20], [4], 5, 20], "expected": 4},
+    {"name": "four kinds with increasing weights", "args": [[5, 5, 5, 5], [1, 2, 3, 4], 8, 10], "expected": 5},
+    {"name": "two kinds, differing weight and quantity", "args": [[15, 20], [4, 2], 8, 16], "expected": 5},
+    {"name": "two kinds, heavier kind has fewer items", "args": [[18, 12], [5, 2], 7, 20], "expected": 6},
+    {"name": "single kind, light weight tight boxes", "args": [[5], [1], 2, 3], "expected": 3},
+    {"name": "two equal kinds, generous box count", "args": [[4, 4], [1, 1], 4, 10], "expected": 2},
+    {"name": "three kinds with mixed heavy weights", "args": [[6, 10, 4], [6, 1, 5], 10, 10], "expected": 5},
+    {"name": "two kinds, one weight near the box limit", "args": [[8, 10], [5, 1], 7, 14], "expected": 4},
+    {"name": "two small kinds, minimal quantities", "args": [[2, 1], [1, 1], 2, 10], "expected": 2},
+    {"name": "three kinds, one larger than the others", "args": [[3, 1, 1], [1, 1, 1], 3, 10], "expected": 3},
+    {"name": "two kinds, weight equals box limit", "args": [[1, 1], [5, 5], 2, 5], "expected": 1},
+    {"name": "three equal minimal kinds", "args": [[1, 1, 1], [1, 1, 1], 3, 10], "expected": 1},
+    {"name": "single kind, exactly one box available", "args": [[4], [1], 1, 10], "expected": 4},
+    {"name": "two kinds, weight ties box limit for one", "args": [[3, 5], [5, 1], 5, 5], "expected": 3},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
+    {"name": "maximum kinds and quantity, weight one each", "file": "large_max_shipping.json.gz", "large": true}
+  ]
+}

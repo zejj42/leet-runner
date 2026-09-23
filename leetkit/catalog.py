@@ -23,10 +23,13 @@ class Problem:
     section: str
     number: Optional[int] = None          # its place on the chart, 1...169
     leetcode_id: Optional[int] = None     # only known for off-list problems
+    extra_id: Optional[int] = None        # an off-list problem that is not on LeetCode at all (x001)
 
     @property
     def label(self) -> str:
-        return f"{self.number:03d}" if self.number is not None else f"lc{self.leetcode_id:04d}"
+        if self.number is not None:
+            return f"{self.number:03d}"
+        return f"lc{self.leetcode_id:04d}" if self.leetcode_id is not None else f"x{self.extra_id:03d}"
 
     @property
     def folder(self) -> Path:
@@ -38,7 +41,7 @@ class Problem:
 
     @property
     def url(self) -> str:
-        return f"https://leetcode.com/problems/{self.slug}/"
+        return f"https://leetcode.com/problems/{self.slug}/" if self.leetcode_id is not None or self.number is not None else ""
 
 
 def all_problems() -> list[Problem]:
@@ -54,8 +57,10 @@ def find(reference: str) -> Problem:
         matches = [p for p in problems if p.number == int(text)]
     elif re.fullmatch(r"lc\d+", text):
         matches = [p for p in problems if p.leetcode_id == int(text[2:])]
+    elif re.fullmatch(r"x\d+", text):
+        matches = [p for p in problems if p.extra_id == int(text[1:])]
     else:
-        slug = re.sub(r"^(\d{3}|lc\d{4})_", "", text).replace("_", "-").replace(" ", "-")
+        slug = re.sub(r"^(\d{3}|lc\d{4}|x\d{3})_", "", text).replace("_", "-").replace(" ", "-")
         matches = [p for p in problems if p.slug == slug]
     if matches:
         return matches[0]

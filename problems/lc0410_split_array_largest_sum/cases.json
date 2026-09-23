@@ -1,0 +1,30 @@
+{
+  "function": "splitArray",
+  "params": [
+    {"name": "nums", "type": "integer[]"},
+    {"name": "k", "type": "integer"}
+  ],
+  "returns": "integer",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[7, 2, 5, 10, 8], 2], "expected": 18},
+    {"name": "example 2", "args": [[1, 2, 3, 4, 5], 2], "expected": 9},
+    {"name": "single element", "args": [[5], 1], "expected": 5},
+    {"name": "k equals array length", "args": [[3, 1, 4, 1, 5], 5], "expected": 5},
+    {"name": "all zeros", "args": [[0, 0, 0, 0], 2], "expected": 0},
+    {"name": "k is one, whole array", "args": [[3, 1, 4, 1, 5], 1], "expected": 14},
+    {"name": "one large element among small ones", "args": [[1, 100, 1], 2], "expected": 101},
+    {"name": "all equal values", "args": [[4, 4, 4, 4], 2], "expected": 8},
+    {"name": "zero mixed with positives", "args": [[0, 1, 10], 2], "expected": 10},
+    {"name": "many equal small parts", "args": [[1, 1, 1, 1, 1, 1], 3], "expected": 2},
+    {"name": "two elements", "args": [[6, 9], 2], "expected": 9},
+    {"name": "three elements, k equals length", "args": [[1, 4, 4], 3], "expected": 4},
+    {"name": "six elements, k one less than length", "args": [[2, 3, 1, 2, 4, 3], 5], "expected": 4},
+    {"name": "ascending run, k is one", "args": [[1, 2, 3, 4, 5], 1], "expected": 15},
+    {"name": "fourteen elements, k eight", "args": [[10, 5, 13, 4, 8, 4, 5, 11, 14, 9, 16, 10, 20, 8], 8], "expected": 25},
+    {"name": "three equal elements, k two", "args": [[4, 4, 4], 2], "expected": 8},
+    {"name": "symmetric peaks around small values", "args": [[6, 1, 1, 6, 1], 3], "expected": 7},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
+    {"name": "maximum length at value cap", "file": "large_max_nums.json.gz", "large": true}
+  ]
+}

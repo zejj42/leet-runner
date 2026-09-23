@@ -1575,6 +1575,42 @@
       "topic": "Other",
       "list": "Off-list",
       "section": ""
+    },
+    {
+      "leetcode_id": 875,
+      "title": "Koko Eating Bananas",
+      "slug": "koko-eating-bananas",
+      "difficulty": "medium",
+      "topic": "Binary Search",
+      "list": "Off-list",
+      "section": ""
+    },
+    {
+      "leetcode_id": 410,
+      "title": "Split Array Largest Sum",
+      "slug": "split-array-largest-sum",
+      "difficulty": "hard",
+      "topic": "Binary Search",
+      "list": "Off-list",
+      "section": ""
+    },
+    {
+      "leetcode_id": 378,
+      "title": "Kth Smallest Element in a Sorted Matrix",
+      "slug": "kth-smallest-element-in-a-sorted-matrix",
+      "difficulty": "medium",
+      "topic": "Binary Search",
+      "list": "Off-list",
+      "section": ""
+    },
+    {
+      "extra_id": 1,
+      "title": "Minimum Shipping Capacity",
+      "slug": "minimum-shipping-capacity",
+      "difficulty": "medium",
+      "topic": "Binary Search",
+      "list": "Off-list",
+      "section": ""
     }
   ]
 }
