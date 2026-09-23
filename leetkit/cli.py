@@ -299,9 +299,9 @@ def _update(args) -> int:
     for change in changes:
         print(f"  · {change}")
     if new:                                                 # "problems" alone would read as trouble
-        print("\nLeetCode problems added to the set:")
-        for name in new:
-            print(f"  · {find(name).title}     leet read {find(name).slug}")
+        print("\nProblems added to the set:")
+        for title, slug in _titles(new):
+            print(f"  · {title}     leet read {slug}")
     return _setup_again()
 
 
@@ -314,7 +314,17 @@ def _commit() -> str:
 
 
 def _folders() -> set[str]:
-    return {problem.folder.name for problem in all_problems() if problem.folder.exists()}
+    from .catalog import PROBLEMS_DIR
+    return {path.name for path in PROBLEMS_DIR.iterdir() if path.is_dir() and (path / "cases.json").exists()}
+
+
+def _titles(folders: list[str]) -> list[tuple[str, str]]:
+    """Titles of freshly pulled problems, read by the freshly pulled code: this process still runs the old kit."""
+    import json
+    script = ("import json, sys; from leetkit.catalog import find; "
+              "print(json.dumps([[find(f).title, find(f).slug] for f in sys.argv[1:]]))")
+    out = subprocess.run([sys.executable, "-c", script, *folders], capture_output=True, text=True, cwd=ROOT)
+    return json.loads(out.stdout) if out.returncode == 0 else [(f, f) for f in folders]
 
 
 def lay_out_solutions() -> None:

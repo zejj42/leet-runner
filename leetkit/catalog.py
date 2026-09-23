@@ -46,7 +46,8 @@ class Problem:
 
 def all_problems() -> list[Problem]:
     data = json.loads((ROOT / "problems.json").read_text())
-    return [Problem(**entry) for entry in data["problems"]]
+    known = Problem.__dataclass_fields__                    # a newer problems.json may carry fields this code has not met
+    return [Problem(**{k: v for k, v in entry.items() if k in known}) for entry in data["problems"]]
 
 
 def find(reference: str) -> Problem:
