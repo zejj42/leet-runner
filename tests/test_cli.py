@@ -135,9 +135,9 @@ def test_reset_puts_the_empty_solution_back_but_only_after_a_yes(tmp_path, monke
     monkeypatch.setattr("builtins.input", lambda prompt: "y")
     assert cli.main(["reset", "two-sum"]) == 0 and solution.read_text() == empty
 
-    solution.write_text("my code")
-    monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("asked, despite --yes"))
-    assert cli.main(["reset", "1", "--yes"]) == 0 and solution.read_text() == empty
+    for gone in (["reset", "1", "--yes"], ["reset", "1", "-y"], ["reset", "1", "--progress"]):       # flags that are no more
+        with pytest.raises(SystemExit):
+            cli.main(gone)
 
 
 def test_every_problem_in_the_repo_can_be_reset():
@@ -159,17 +159,51 @@ def test_startover_empties_every_solution_and_forgets_what_was_solved_after_a_ye
     progress.mark_solved("two-sum")
 
     monkeypatch.setattr("builtins.input", lambda prompt: "")
-    assert cli.main(["startover"]) == 1                                     # Enter alone means no
+    assert cli.main(["startover", "--all"]) == 1                            # Enter alone means no
     assert "1 problem" in capsys.readouterr().out and (written.folder / "solution.py").read_text() == "my code"
     assert progress.solves() == {"two-sum": 1}
 
     monkeypatch.setattr("builtins.input", lambda prompt: "y")
-    assert cli.main(["startover"]) == 0
+    assert cli.main(["startover", "--all"]) == 0
     assert (written.folder / "solution.py").read_text() == written.stub.read_text()
     assert (written.folder / "cases.json").read_text() == "my cases" and progress.solves() == {}
 
     monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("nothing to erase, nothing to ask"))
-    assert cli.main(["startover"]) == 0 and "Nothing to start over" in capsys.readouterr().out
+    assert cli.main(["startover", "--all"]) == 0 and "Nothing to start over" in capsys.readouterr().out
+
+
+def test_reset_all_empties_every_solution_and_keeps_the_solves(tmp_path, monkeypatch, capsys):
+    from leetkit import cli, progress
+    monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
+    one, two, untouched = find("two-sum"), find("3sum"), find("reorder-list")
+    for each in (one, two, untouched):
+        each.folder.mkdir()
+        (each.folder / "solution.py").write_text(each.stub.read_text())
+    (one.folder / "solution.py").write_text("mine"); (two.folder / "solution.py").write_text("mine too")
+    progress.mark_solved("two-sum", "abc")
+    monkeypatch.setattr("builtins.input", lambda prompt: "y")
+    assert cli.main(["reset", "--all"]) == 0
+    said = capsys.readouterr().out
+    assert "2 problems" in said and "Two Sum" in said and "Reorder List" not in said
+    assert all((p.folder / "solution.py").read_text() == p.stub.read_text() for p in (one, two, untouched))
+    assert progress.solves() == {"two-sum": 1}
+    monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("nothing to erase, nothing to ask"))
+    assert cli.main(["reset", "--all"]) == 0 and "Nothing to reset" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("command", ["reset", "startover"])
+def test_a_command_run_without_what_it_needs_says_what_it_takes(command, capsys):
+    from leetkit import cli
+    for wrong in ([command], [command, "two-sum", "--all"]):
+        with pytest.raises(SystemExit) as leaving:
+            cli.main(wrong)
+        said = capsys.readouterr().err
+        assert leaving.value.code == 2
+        assert f"usage: leet {command} <problem>" in said and f"leet {command} --all" in said and "every problem" in said
+    with pytest.raises(SystemExit):
+        cli.main(["check"])
+    said = capsys.readouterr().err
+    assert "usage: leet check <problem>" in said and "--all" not in said and "LeetCode slug" in said
 
 
 def test_update_brings_new_problems_and_leaves_what_you_wrote_alone(tmp_path, monkeypatch, capsys):
@@ -209,7 +243,7 @@ def test_the_colour_extension_packs_into_something_vs_code_can_install(tmp_path)
             "extension/syntaxes/verdict.tmLanguage.json"} <= set(names)
 
 
-def test_reset_with_progress_forgets_the_problems_solves_too(tmp_path, monkeypatch, capsys):
+def test_startover_on_one_problem_forgets_its_solves_too_and_reset_does_not(tmp_path, monkeypatch, capsys):
     from leetkit import cli, progress
     monkeypatch.setattr(scaffolding, "fetch", lambda slug: QUESTION)
     monkeypatch.setattr("leetkit.catalog.PROBLEMS_DIR", tmp_path)
@@ -218,12 +252,17 @@ def test_reset_with_progress_forgets_the_problems_solves_too(tmp_path, monkeypat
     solution = scaffolding.scaffold(find("two-sum")) / "solution.py"
     progress.mark_solved("two-sum", "abc"); progress.mark_solved("3sum", "abc")
 
-    assert cli.main(["reset", "two-sum", "-y"]) == 0 and progress.solves() == {"two-sum": 1, "3sum": 1}   # plain reset keeps them
     solution.write_text("mine")
-    monkeypatch.setattr("builtins.input", lambda prompt: (assert_(prompt, "erases your code") or assert_(prompt, "forgets its 1 solve") or "y"))
-    assert cli.main(["reset", "two-sum", "--progress"]) == 0
+    monkeypatch.setattr("builtins.input", lambda prompt: "y")
+    assert cli.main(["reset", "two-sum"]) == 0 and progress.solves() == {"two-sum": 1, "3sum": 1}        # reset keeps them
+    solution.write_text("mine")
+    capsys.readouterr()
+    assert cli.main(["startover", "two", "sum"]) == 0
+    said = capsys.readouterr().out
+    assert "erases your code" in said and "forgets its 1 solve" in said
     assert progress.solves() == {"3sum": 1} and solution.read_text() != "mine"         # only this problem is forgotten
-    assert cli.main(["reset", "two-sum", "--progress"]) == 0 and "already" in capsys.readouterr().out
+    monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("nothing to erase, nothing to ask"))
+    assert cli.main(["startover", "two-sum"]) == 0 and "already" in capsys.readouterr().out
 
 
 def assert_(text, part):

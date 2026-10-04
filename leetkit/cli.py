@@ -20,17 +20,29 @@ usage: leet <command> [<problem>] [options]
   code <problem>           open its solution.py in nvim (vim if there is no nvim)
   check <problem>          judge solution.py: Accepted, Wrong Answer, Runtime Error, Time Limit Exceeded
   open <problem>           open the problem in VS Code
-  reset <problem>          erase your code; the problem keeps its solves
-      --progress           also forget its solves
-      -y                   do not ask first
-  startover                erase your code in every problem and forget all solves
-      -y                   do not ask first
+  reset <problem>          erase your code in that problem; it keeps its solves
+  reset --all              erase your code in every problem; they keep their solves
+  startover <problem>      erase your code in that problem and forget its solves
+  startover --all          erase everything: all your code and all solves
   setup                    create .venv, the leet command and the VS Code extension
   update                   pull the newest problems and kit from GitHub
   --version
 
 <problem>  its number on the list (1), its LeetCode slug (two-sum), or words of its title (two sum)
 """
+
+_PROBLEM = "its number on the list (1), its LeetCode slug (two-sum), or words of its title (two sum)"
+
+
+def _usage_of(command: str) -> str:
+    """What one command takes, for when it is run without it: the forms it has, then what each part means."""
+    takes_all = command in ("reset", "startover")
+    forms = [f"leet {command} <problem>"] + ([f"leet {command} --all"] if takes_all else [])
+    lines = ["usage: " + forms[0]] + ["       " + form for form in forms[1:]]
+    lines += ["", f"  <problem>   {_PROBLEM}"]
+    if takes_all:
+        lines.append("  --all       every problem")
+    return "\n".join(lines) + "\n"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -55,31 +67,36 @@ def main(argv: list[str] | None = None) -> int:
 def _run(argv: list[str], facts: dict) -> int:
     from .version import version
     parser = argparse.ArgumentParser(prog="leet", usage=argparse.SUPPRESS, add_help=False)
-    parser.error = lambda message: parser.exit(2, f"leet: {message.split(' (choose from')[0]}\n{_USAGE}")
+    takes_problem = ("read", "code", "check", "open", "reset", "startover")
+    parser.error = lambda message: parser.exit(2, f"leet: {message.split(' (choose from')[0]}\n"
+                                               + (_usage_of(argv[0]) if argv and argv[0] in takes_problem else _USAGE))
     parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("--version", action="version", version=f"leet-runner {version()}")
     commands = parser.add_subparsers(dest="command", metavar="<command>")
-    def command(name: str, usage: str, problem: bool = False, yes: bool = False):
-        sub = commands.add_parser(name, add_help=False, usage=f"leet {usage}")
+    def command(name: str, problem: bool = False, everything: bool = False):
+        sub = commands.add_parser(name, add_help=False, usage=argparse.SUPPRESS)
+        sub.error = lambda message: parser.exit(2, f"leet {name}: {message}\n" + (_usage_of(name) if problem else _USAGE))
         sub.add_argument("-h", "--help", action="store_true")   # -h anywhere prints the one help page
         if problem:
             sub.add_argument("problem", nargs="*")
-        if yes:
-            sub.add_argument("-y", "--yes", action="store_true")
+        if everything:
+            sub.add_argument("--all", action="store_true")
         return sub
     for name in ("list", "setup", "update"):
-        command(name, name)
+        command(name)
     for name in ("read", "code", "check", "open"):
-        command(name, f"{name} <problem>", problem=True)
-    command("reset", "reset <problem> [--progress] [-y]", problem=True, yes=True).add_argument("--progress", action="store_true")
-    command("startover", "startover [-y]", yes=True)
+        command(name, problem=True)
+    for name in ("reset", "startover"):
+        command(name, problem=True, everything=True)
 
     args = parser.parse_args(argv)
     if args.help or args.command is None:
         print(_USAGE.rstrip("\n"))
         return 0
-    if getattr(args, "problem", None) == []:
-        parser.exit(2, f"leet {args.command}: which problem? {_USAGE.splitlines()[-1].lstrip('<problem> ')}\n")
+    # A command run without what it needs, or with both a problem and --all, prints what it takes.
+    named, everything = getattr(args, "problem", None), getattr(args, "all", False)
+    if named is not None and bool(named) == bool(everything):
+        parser.exit(2, _usage_of(args.command))
     args.facts = facts                                      # what a command adds to its line in the journal
     try:
         return {"list": _list, "read": _read, "code": _code, "check": _check, "open": _open, "reset": _reset, "startover": _startover, "setup": _setup, "update": _update}[args.command](args)
@@ -223,58 +240,76 @@ def _open(args) -> int:
 
 
 def _reset(args) -> int:
-    problem = _in_the_repo(args.problem)
-    args.facts.update(problem=problem.slug, erased=False)
-    if not problem.stub.exists():
-        raise LookupError(f"{problem.title} has no starting file saved in {problem.stub.parent.relative_to(ROOT)}.")
-    from . import progress
-    solution = problem.folder / "solution.py"
-    empty = not solution.exists() or solution.read_text() == problem.stub.read_text()
-    solves = progress.solves().get(problem.slug, 0)
-    if empty and not (args.progress and solves):
-        print(f"{problem.title} is already in its starting state.")
-        return 0
-    if not args.yes:
-        doing = [] if empty else [f"erases your code in {solution.relative_to(ROOT)}"]
-        if args.progress and solves:
-            doing.append(f"forgets its {solves} solve{'' if solves == 1 else 's'}")
-        if input(f"This {' and '.join(doing)}. Go on? [y/N] ").strip().lower() not in ("y", "yes"):
-            print("Left as it is.")
-            return 1
-    solution.write_text(problem.stub.read_text())
-    if args.progress:
-        progress.forget(problem.slug)
-    else:
-        progress.note_reset(problem.slug)                   # its strokes stay; the next Accepted adds one
-    args.facts.update(erased=not empty, forgotten=solves if args.progress else 0)
-    print(f"{problem.title} is back to its starting state" + (", unsolved." if args.progress else "."))
-    return 0
+    """Your code goes; the solves stay, and the next Accepted adds one."""
+    return _wipe(args, forget=False)
 
 
 def _startover(args) -> int:
+    """Your code and the solves both go."""
+    return _wipe(args, forget=True)
+
+
+def _wipe(args, forget: bool) -> int:
+    """Puts solution.py back to its empty stub, for one problem or for all of them, after a yes. With `forget`
+    the solves go too. The cases and the journal are never touched."""
     from . import progress
-    written = [problem for problem in all_problems()
-               if problem.stub.exists() and (problem.folder / "solution.py").exists()
-               and (problem.folder / "solution.py").read_text() != problem.stub.read_text()]
-    marks = len(progress.solves())
-    args.facts.update(erased=0, forgotten=0)
-    if not written and not marks:
-        print("Nothing to start over from: no code written, nothing marked solved.")
+    if args.all:
+        targets = [p for p in all_problems() if p.folder.exists() and p.stub.exists()]
+    else:
+        targets = [_in_the_repo(args.problem)]
+        if not targets[0].stub.exists():
+            raise LookupError(f"{targets[0].title} has no starting file saved in {targets[0].stub.parent.name}.")
+    solves = progress.solves()
+    written = [p for p in targets if (p.folder / "solution.py").exists()
+               and (p.folder / "solution.py").read_text() != p.stub.read_text()]
+    solved = [p for p in targets if forget and solves.get(p.slug)]
+    args.facts.update(problem="all" if args.all else targets[0].slug, erased=0, forgotten=0)
+
+    if not written and not solved:
+        if not args.all:
+            print(f"{targets[0].title} is already in its starting state.")
+        else:
+            print("Nothing to start over from: no code written, nothing marked solved." if forget else "Nothing to reset: no code written.")
         return 0
-    if not args.yes:
-        print(f"This erases your code in {len(written)} problem{'' if len(written) == 1 else 's'}"
-              f" and forgets the strokes of {marks} problem{'' if marks == 1 else 's'}. The cases and the journal stay.")
+
+    if args.all:
+        parts = [f"erases your code in {_count(written, 'problem')}"] if written else []
+        if solved:
+            parts.append(f"forgets the solves of {_count(solved, 'problem')}")
+        print(f"This {' and '.join(parts)}. The cases and the journal stay.")
         for problem in written:
             print(f"  · {problem.title}")
-        if input("Start over? [y/N] ").strip().lower() not in ("y", "yes"):
-            print("Left as it is.")
-            return 1
+    else:
+        parts = [f"erases your code in {targets[0].folder.name}/solution.py"] if written else []
+        if solved:
+            count = solves[targets[0].slug]
+            parts.append(f"forgets its {count} solve{'' if count == 1 else 's'}")
+        print(f"This {' and '.join(parts)}.")
+    if input("Go on? [y/N] ").strip().lower() not in ("y", "yes"):
+        print("Left as it is.")
+        return 1
+
     for problem in written:
         (problem.folder / "solution.py").write_text(problem.stub.read_text())
-    progress.forget_all()
-    args.facts.update(erased=len(written), forgotten=marks)
-    print("Started over: every problem is empty and unsolved again.")
+        if not forget:
+            progress.note_reset(problem.slug)               # its strokes stay; the next Accepted adds one
+    if forget:
+        if args.all:
+            progress.forget_all()
+        else:
+            progress.forget(targets[0].slug)
+    args.facts.update(erased=len(written), forgotten=len(solved))
+    if not args.all:
+        print(f"{targets[0].title} is back to its starting state" + (", unsolved." if forget else "."))
+    elif forget:
+        print("Started over: every problem is empty and unsolved again.")
+    else:
+        print(f"{_count(written, 'problem')} back to the starting state. The solves stay.")
     return 0
+
+
+def _count(items: list, noun: str) -> str:
+    return f"{len(items)} {noun}{'' if len(items) == 1 else 's'}"
 
 
 def _update(args) -> int:

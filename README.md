@@ -17,8 +17,13 @@ from any directory. If `~/.local/bin` is not on your `PATH` yet, log in again or
     leet read <problem>     show the problem's statement
     leet code <problem>     edit the problem's solution.py in Neovim (vim if nvim is not installed)
     leet check <problem>     judge problems/<problem>/solution.py
-    leet reset <problem>    restore solution.py to its empty stub (asks first; -y skips the question; --progress also forgets its solves)
-    leet startover          reset every solution.py and forget what was solved (asks first; -y skips the question)
+    leet reset <problem>    restore that problem's solution.py to its empty stub; its solves stay
+    leet reset --all        the same for every problem
+    leet startover <problem>   restore its solution.py and forget its solves
+    leet startover --all    restore every solution.py and forget every solve
+
+`reset` and `startover` say what they are about to erase and ask before doing it. A command run without what it
+needs prints what it takes.
     leet open <problem>     open the statement and solution.py in VS Code (needs a desktop session)
     leet setup              create or repair .venv, the leet link and the VS Code extension
     leet update             git pull the newest problems and kit, then setup again; lists what changed
