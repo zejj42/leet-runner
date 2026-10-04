@@ -1,0 +1,30 @@
+{
+  "function": "mergeKLists",
+  "params": [
+    {"name": "lists", "type": "ListNode[]"}
+  ],
+  "returns": "ListNode",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[[1, 4, 5], [1, 3, 4], [2, 6]]], "expected": [1, 1, 2, 3, 4, 4, 5, 6]},
+    {"name": "example 2", "args": [[]], "expected": []},
+    {"name": "example 3", "args": [[[]]], "expected": []},
+    {"name": "empty lists among full ones", "args": [[[], [1, 5], [], [2], []]], "expected": [1, 2, 5]},
+    {"name": "one long list, the rest single nodes", "args": [[[1, 2, 3, 4, 5, 6, 7, 8], [4], [0], [9]]], "expected": [0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 9]},
+    {"name": "negative values", "args": [[[-9, -5, -1], [-8, -8, 0], [-10]]], "expected": [-10, -9, -8, -8, -5, -1, 0]},
+    {"name": "extreme values", "args": [[[-10000, 10000], [0]]], "expected": [-10000, 0, 10000]},
+    {"name": "every list the same", "args": [[[1, 2], [1, 2], [1, 2]]], "expected": [1, 1, 1, 2, 2, 2]},
+    {"name": "lists that do not interleave, given backwards", "args": [[[7, 8, 9], [4, 5, 6], [1, 2, 3]]], "expected": [1, 2, 3, 4, 5, 6, 7, 8, 9]},
+    {"name": "2 lists: 2 4 6 | 1 3 5", "args": [[[2, 4, 6], [1, 3, 5]]], "expected": [1, 2, 3, 4, 5, 6]},
+    {"name": "1 lists: 1 2 3", "args": [[[1, 2, 3]]], "expected": [1, 2, 3]},
+    {"name": "6 lists: -2 -1 0 0 1 1 1 2 3 | 4 5 6 7 | 8 | 9 | empty | 10", "args": [[[-2, -1, 0, 0, 1, 1, 1, 2, 3], [4, 5, 6, 7], [8], [9], [], [10]]], "expected": [-2, -1, 0, 0, 1, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
+    {"name": "4 lists: 2 | 2 | 2 | 2", "args": [[[2], [2], [2], [2]]], "expected": [2, 2, 2, 2]},
+    {"name": "2 lists: 1 | 2 3", "args": [[[1], [2, 3]]], "expected": [1, 2, 3]},
+    {"name": "2 lists: 1 1 3 | 2", "args": [[[1, 1, 3], [2]]], "expected": [1, 1, 2, 3]},
+    {"name": "2 lists: empty | empty", "args": [[[], []]], "expected": []},
+    {"name": "5 lists: 3 | 1 | 2 | 5 | 4", "args": [[[3], [1], [2], [5], [4]]], "expected": [1, 2, 3, 4, 5]},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
+    {"name": "largest input, twenty long lists", "file": "large_long.json.gz", "large": true},
+    {"name": "largest input, two thousand short lists", "file": "large_short.json.gz", "large": true}
+  ]
+}

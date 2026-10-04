@@ -1,0 +1,37 @@
+{
+  "function": "findClosestElements",
+  "params": [
+    {"name": "arr", "type": "integer[]"},
+    {"name": "k", "type": "integer"},
+    {"name": "x", "type": "integer"}
+  ],
+  "returns": "list<integer>",
+  "compare": "exact",
+  "cases": [
+    {"name": "example 1", "args": [[1, 2, 3, 4, 5], 4, 3], "expected": [1, 2, 3, 4]},
+    {"name": "example 2", "args": [[1, 1, 2, 3, 4, 5], 4, -1], "expected": [1, 1, 2, 3]},
+    {"name": "x smaller than every value", "args": [[5, 6, 7, 8], 2, -3], "expected": [5, 6]},
+    {"name": "x larger than every value", "args": [[5, 6, 7, 8], 3, 100], "expected": [6, 7, 8]},
+    {"name": "k takes the whole list", "args": [[1, 4, 9], 3, 5], "expected": [1, 4, 9]},
+    {"name": "x between two values, equally far, k odd", "args": [[1, 2, 4, 5], 3, 3], "expected": [1, 2, 4]},
+    {"name": "many copies of x", "args": [[2, 2, 2, 2, 3], 3, 2], "expected": [2, 2, 2]},
+    {"name": "x not in the list, nearer the right", "args": [[1, 5, 10], 1, 8], "expected": [10]},
+    {"name": "extreme values", "args": [[-10000, 0, 10000], 2, 10000], "expected": [0, 10000]},
+    {"name": "a tie at both ends of the window", "args": [[0, 1, 2, 3, 4, 5, 6], 2, 3], "expected": [2, 3]},
+    {"name": "values 1 2 3 4 5, k = 2, x = 5", "args": [[1, 2, 3, 4, 5], 2, 5], "expected": [4, 5]},
+    {"name": "values 1 3 5 8 10, k = 2, x = 5", "args": [[1, 3, 5, 8, 10], 2, 5], "expected": [3, 5]},
+    {"name": "values 3 4 7 10 15, k = 3, x = 8", "args": [[3, 4, 7, 10, 15], 3, 8], "expected": [4, 7, 10]},
+    {"name": "values 5 6 7 8 9, k = 3, x = 7", "args": [[5, 6, 7, 8, 9], 3, 7], "expected": [6, 7, 8]},
+    {"name": "values 1 1 1 10 10 10, k = 1, x = 9", "args": [[1, 1, 1, 10, 10, 10], 1, 9], "expected": [10]},
+    {"name": "values 1 2 3 4 5, k = 2, x = 6", "args": [[1, 2, 3, 4, 5], 2, 6], "expected": [4, 5]},
+    {"name": "values -2 1 4, k = 1, x = -1", "args": [[-2, 1, 4], 1, -1], "expected": [-2]},
+    {"name": "values 1 2 10, k = 2, x = 2", "args": [[1, 2, 10], 2, 2], "expected": [1, 2]},
+    {"name": "values 1 1 2, k = 2, x = 1", "args": [[1, 1, 2], 2, 1], "expected": [1, 1]},
+    {"name": "values 1 3, k = 1, x = 2", "args": [[1, 3], 1, 2], "expected": [1]},
+    {"name": "values 0 2 5, k = 2, x = 1", "args": [[0, 2, 5], 2, 1], "expected": [0, 2]},
+    {"name": "values 4 6 8, k = 2, x = 1", "args": [[4, 6, 8], 2, 1], "expected": [4, 6]},
+    {"name": "values 1, k = 1, x = 100", "args": [[1], 1, 100], "expected": [1]},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
+    {"name": "largest input, random values", "file": "large_input.json.gz", "large": true}
+  ]
+}

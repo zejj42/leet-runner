@@ -187,3 +187,21 @@ def test_a_batch_file_stands_for_many_small_cases(tmp_path):
     assert len(loaded.cases) == 31 and loaded.cases[1].name == "random small 1" and loaded.cases[30].args == [29, 29]
     for case in loaded.cases:
         run_case(loaded, case)
+
+
+def test_float_answers_are_compared_through_a_class_problems_list(tmp_path):
+    spec = {"class": "Mean", "compare": "float", "cases": [
+        {"name": "one", "ops": ["Mean", "add", "add", "get"], "args": [[], [1], [2], []], "expected": [None, None, None, 1.5]}]}
+    judge(problem(tmp_path, """
+        class Mean:
+            def __init__(self): self.items = []
+            def add(self, x): self.items.append(x)
+            def get(self): return sum(self.items) / len(self.items) + 1e-9
+        """, spec))
+    with pytest.raises(WrongAnswer):
+        judge(problem(tmp_path, """
+            class Mean:
+                def __init__(self): self.items = []
+                def add(self, x): self.items.append(x)
+                def get(self): return 2
+            """, spec))

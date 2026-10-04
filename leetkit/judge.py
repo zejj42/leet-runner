@@ -161,8 +161,13 @@ def _matches(result: Any, expected: Any, mode: str) -> bool:
             return False
         return (_sorted_safely([_sorted_safely(list(r)) for r in result])
                 == _sorted_safely([_sorted_safely(list(e)) for e in expected]))
-    if mode == "float":
-        return isinstance(result, (int, float)) and abs(result - expected) <= 1e-5
+    if mode == "float":                                    # within 10^-5, through lists too (a class's answers)
+        if isinstance(expected, list):
+            return (isinstance(result, (list, tuple)) and len(result) == len(expected)
+                    and all(_matches(r, e, mode) for r, e in zip(result, expected)))
+        if expected is None or isinstance(expected, bool):
+            return result == expected
+        return isinstance(result, (int, float)) and not isinstance(result, bool) and abs(result - expected) <= 1e-5
     if mode == "any_of":
         return any(result == option for option in expected)
     if isinstance(result, tuple):
