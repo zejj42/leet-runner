@@ -28,6 +28,14 @@
     {"name": "the string ()(()", "args": ["()(()"], "expected": 2},
     {"name": "the string )((((()()((()()))", "args": [")((((()()((()()))"], "expected": 12},
     {"name": "the string ))", "args": ["))"], "expected": 0},
+    {"name": "a closing then an opening", "args": [")("], "expected": 0},
+    {"name": "two closings, then a pair", "args": ["))()"], "expected": 2},
+    {"name": "a pair, a closing, an opening", "args": ["())("], "expected": 2},
+    {"name": "a closing, a pair, an opening", "args": [")()("], "expected": 2},
+    {"name": "three closings, two pairs, an opening", "args": [")))()()("], "expected": 4},
+    {"name": "closings between pairs, ending open", "args": ["())())(()("], "expected": 2},
+    {"name": "a closing, then nested pairs, then two openings", "args": [")(())(("], "expected": 4},
+    {"name": "random small inputs", "file": "random.json.gz", "batch": true},
     {"name": "largest input, one fully nested run", "file": "large_nested.json.gz", "large": true},
     {"name": "largest input, repeating broken triples", "file": "large_repeating.json.gz", "large": true}
   ]
